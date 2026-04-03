@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meto AI | Control Panel</title>
+    <title>Meto AI | Welcome</title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -19,7 +19,7 @@
             overflow: hidden;
         }
 
-        /* ТЕ САМЫЕ КНОПКИ СВЕРХУ */
+        /* Кнопки управления */
         .container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; padding: 20px; }
         .nav-btn { 
             padding: 12px 24px; 
@@ -34,25 +34,25 @@
         }
         .nav-btn:hover { background-color: #00ffcc; color: #000; box-shadow: 0 0 15px #00ffcc; }
 
-        /* ИНДИКАТОР ТЕКСТА */
+        /* Текстовая область */
         .display-area { text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        #status { color: #4488ff; letter-spacing: 2px; text-transform: uppercase; font-size: 12px; margin-bottom: 10px; }
-        #transcript { font-size: 24px; font-weight: 300; min-height: 40px; color: #fff; }
+        #status { color: #4488ff; letter-spacing: 2px; text-transform: uppercase; font-size: 14px; margin-bottom: 10px; font-weight: 300; }
+        #transcript { font-size: 26px; font-weight: 300; min-height: 45px; color: #fff; opacity: 0.9; }
 
-        /* МИКРОФОН СНИЗУ */
-        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        /* Микрофон */
+        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 20px; }
         .mic-btn {
-            width: 70px; height: 70px; border-radius: 50%;
+            width: 75px; height: 75px; border-radius: 50%;
             background: #111; border: 2px solid #4488ff;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .mic-btn svg { fill: #4488ff; width: 30px; }
-        .mic-btn.active { transform: scale(1.2); box-shadow: 0 0 30px #4488ff; animation: pulse 1.5s infinite; }
+        .mic-btn svg { fill: #4488ff; width: 32px; }
+        .mic-btn.active { transform: scale(1.15); box-shadow: 0 0 35px rgba(68, 136, 255, 0.6); animation: breathe 2s infinite ease-in-out; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        .hover-text { opacity: 0; font-size: 14px; color: #555; transition: 0.3s; }
+        .hover-text { opacity: 0; font-size: 13px; color: #666; transition: 0.3s; letter-spacing: 1px; }
         .mic-container:hover .hover-text { opacity: 1; }
     </style>
 </head>
@@ -66,8 +66,8 @@
     </div>
 
     <div class="display-area">
-        <div id="status">System Ready</div>
-        <div id="transcript">Click mic to talk</div>
+        <div id="status">Welcome, I'm Meto!</div>
+        <div id="transcript">Ready for your command</div>
     </div>
 
     <div class="mic-container">
@@ -92,61 +92,76 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const synth = window.speechSynthesis;
 
+        // Функция выбора более "человечного" голоса
+        function getBestVoice() {
+            const voices = synth.getVoices();
+            // Ищем голоса Google или более современные варианты в системе
+            return voices.find(v => v.name.includes('Google') && v.lang.includes('en')) || 
+                   voices.find(v => v.lang.includes('en-US')) || 
+                   voices[0];
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = getBestVoice();
+            utterance.lang = 'en-US';
+            utterance.pitch = 1.1; // Чуть выше для дружелюбности
+            utterance.rate = 0.95; // Чуть медленнее для четкости
+            synth.speak(utterance);
+        }
+
         if (!SpeechRecognition) {
-            transcriptText.innerText = "Browser not supported";
+            transcriptText.innerText = "Mic not supported";
         } else {
             const recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
 
-            btn.onclick = () => { recognition.start(); };
+            btn.onclick = () => { 
+                try { recognition.start(); } catch(e) {}
+            };
 
             recognition.onstart = () => {
                 btn.classList.add('active');
-                statusText.innerText = "Listening...";
+                statusText.innerText = "I'm listening...";
+                transcriptText.innerText = "";
             };
 
             recognition.onresult = (event) => {
-                const result = event.results[0][0].transcript.toLowerCase();
+                const result = event.results[0].transcript.toLowerCase();
                 transcriptText.innerText = `"${result}"`;
                 handleCommand(result);
             };
 
             recognition.onend = () => {
                 btn.classList.remove('active');
-                statusText.innerText = "System Ready";
+                statusText.innerText = "Welcome, I'm Meto!";
             };
         }
 
-        function speak(text) {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'en-US';
-            synth.speak(u);
-        }
-
         function handleCommand(cmd) {
-            // Кто ты?
-            if (cmd.includes('who are you') || cmd.includes('what is your name')) {
-                speak("I am Meto, your AI assistant.");
+            if (cmd.includes('who are you')) {
+                speak("I am Meto, your personal assistant. Nice to meet you!");
                 return;
             }
 
-            // Логика OPEN
             if (cmd.includes('open')) {
                 let found = false;
                 for (let app in APP_DB) {
                     if (cmd.includes(app)) {
-                        speak(`Opening ${app}`);
-                        setTimeout(() => { window.open(APP_DB[app], '_blank'); }, 500);
+                        speak(`Of course. Opening ${app} for you.`);
+                        setTimeout(() => { window.open(APP_DB[app], '_blank'); }, 700);
                         found = true;
                         break;
                     }
                 }
-                if (!found) speak("Sorry, I don't have that site in my database.");
+                if (!found) speak("I'm sorry, I don't have that website in my records yet.");
             } else {
-                // Если нет слова open
-                speak("Sorry, but for now I only support 'open' commands.");
+                speak("Sorry, but for now I only support open commands.");
             }
         }
+
+        // Предварительная загрузка голосов (некоторые браузеры загружают их асинхронно)
+        window.speechSynthesis.onvoiceschanged = getBestVoice;
     </script>
 </body>
 </html>
