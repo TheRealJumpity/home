@@ -1,103 +1,198 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель ссылок</title>
+    <title>Meto AI | Terminal Edition</title>
     <style>
         body { 
-            font-family: 'Segoe UI', sans-serif; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
-            justify-content: center; 
-            gap: 30px;
+            justify-content: center;
             height: 100vh; 
-            background-color: #000000; 
+            background-color: #000; 
             margin: 0;
             color: white;
+            overflow: hidden;
         }
 
-        .container { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; }
+        .display-area { text-align: center; margin-bottom: 60px; padding: 0 20px; }
+        
+        #status {
+            font-size: 12px;
+            color: #4488ff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            height: 20px;
+        }
 
-        /* Стиль кнопки как на картинке */
-        .rainbow-btn {
-            position: relative;
-            padding: 16px 40px;
-            font-size: 18px;
-            color: white;
-            background: #111; /* Цвет внутри кнопки */
-            border: none;
-            border-radius: 12px;
+        #transcript {
+            font-size: 28px;
+            font-weight: 300;
+            color: #ffffff;
+            min-height: 40px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .mic-container {
+            position: fixed;
+            bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .mic-btn {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background: #111;
+            border: 1px solid #222;
             cursor: pointer;
-            outline: none;
-            z-index: 1;
-            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 0 rgba(68, 136, 255, 0);
         }
 
-        /* Создаем градиентную рамку */
-        .rainbow-btn::before {
-            content: "";
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
-            background-size: 400%;
-            z-index: -1;
-            filter: blur(2px); /* Легкое свечение края */
-            animation: glowing 20s linear infinite;
-            border-radius: 14px;
+        .mic-btn svg { fill: #666; width: 35px; transition: 0.3s; }
+
+        /* Состояние прослушивания */
+        .listening {
+            border-color: #4488ff;
+            box-shadow: 0 0 40px rgba(68, 136, 255, 0.4);
+            transform: scale(1.1);
         }
 
-        /* Затемняем центр кнопки, чтобы была видна только рамка */
-        .rainbow-btn::after {
-            content: "";
-            position: absolute;
-            inset: 2px; /* Толщина рамки */
-            background: #111;
-            border-radius: 11px;
-            z-index: -1;
+        .listening svg {
+            fill: #4488ff;
+            animation: breathe 2s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.6; }
+        }
+
+        .hover-hint {
+            opacity: 0;
+            font-size: 13px;
+            color: #444;
+            letter-spacing: 1px;
             transition: 0.3s;
         }
 
-        /* Эффект при наведении */
-        .rainbow-btn:hover::after {
-            background: #1a1a1a; /* Чуть светлее при наведении */
-        }
-
-        .rainbow-btn:hover {
-            transform: scale(1.03);
-            transition: 0.2s;
-        }
-
-        /* Анимация перелива */
-        @keyframes glowing {
-            0% { background-position: 0 0; }
-            50% { background-position: 400% 0; }
-            100% { background-position: 0 0; }
-        }
-
-        h1 { font-weight: 300; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .mic-container:hover .hover-hint { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <h1>Get Started</h1>
-    
-    <div class="container">
-        <button class="rainbow-btn" onclick="goTo('https://github.com')">GitHub</button>
-        <button class="rainbow-btn" onclick="goTo('https://google.com')">Google</button>
-        <button class="rainbow-btn" onclick="goTo('https://youtube.com')">YouTube</button>
-        <button class="rainbow-btn" onclick="goTo('https://spotify.com')">Spotify</button>
+    <div class="display-area">
+        <div id="status">System Idle</div>
+        <div id="transcript">Listening for "Open..."</div>
+    </div>
+
+    <div class="mic-container">
+        <button class="mic-btn" id="mic-btn">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z""")/>>
+            </svg>
+        </button>
+        <span class="hover-hint">Talk to Meto</span>
     </div>
 
     <script>
-        function goTo(url) {
-            window.location.href = url;
+        // БАЗА ДАННЫХ КОМАНД (Легко дополнять)
+        const APP_DATABASE = {
+            "spotify": "https://spotify.com",
+            "youtube": "https://youtube.com",
+            "github": "https://github.com",
+            "google": "https://google.com",
+            "gmail": "https://google.com",
+            "discord": "https://discord.com",
+            "netflix": "https://netflix.com",
+            "twitter": "https://twitter.com",
+            "x": "https://x.com",
+            "reddit": "https://reddit.com",
+            "instagram": "https://instagram.com",
+            "facebook": "https://facebook.com",
+            "twitch": "https://twitch.tv",
+            "chatgpt": "https://openai.com",
+            "roblox": "https://roblox.com",
+            "amazon": "https://amazon.com",
+            "wikipedia": "https://wikipedia.org",
+            "pinterest": "https://pinterest.com"
+        };
+
+        const btn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status');
+        const transcriptText = document.getElementById('transcript');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const synth = window.speechSynthesis;
+
+        if (!SpeechRecognition) {
+            transcriptText.innerText = "Speech API not supported";
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+
+            btn.onclick = () => {
+                try { recognition.start(); } catch(e) {}
+            };
+
+            recognition.onstart = () => {
+                btn.classList.add('listening');
+                statusText.innerText = "Meto is Listening";
+                transcriptText.innerText = "...";
+            };
+
+            recognition.onresult = (event) => {
+                const command = event.results[0].transcript.toLowerCase();
+                transcriptText.innerText = `"${command}"`;
+                handleVoiceCommand(command);
+            };
+
+            recognition.onend = () => {
+                btn.classList.remove('listening');
+                statusText.innerText = "System Idle";
+            };
+        }
+
+        function speak(text) {
+            synth.cancel(); // Остановить текущую речь, если есть
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 1.0;
+            utterance.pitch = 0.9; // Чуть более глубокий голос
+            synth.speak(utterance);
+        }
+
+        function handleVoiceCommand(cmd) {
+            // Проверяем, начинается ли команда с "open"
+            if (cmd.startsWith('open ')) {
+                const target = cmd.replace('open ', '').trim();
+                
+                if (APP_DATABASE[target]) {
+                    speak(`Opening ${target} for you.`);
+                    // Небольшая задержка, чтобы браузер не блокировал окно после речи
+                    setTimeout(() => {
+                        window.open(APP_DATABASE[target], '_blank');
+                    }, 500);
+                } else {
+                    speak("Sorry, I don't have that website in my database yet.");
+                }
+            } else {
+                // Если команда не распознана или не "open"
+                speak("Sorry, but for now I only support 'open' commands.");
+            }
         }
     </script>
-
 </body>
 </html>
