@@ -6,61 +6,96 @@
     <title>Панель ссылок</title>
     <style>
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
             justify-content: center; 
-            gap: 20px;
+            gap: 30px;
             height: 100vh; 
-            background-color: #000000; /* Чистый черный фон */
-            color: #ffffff;
+            background-color: #000000; 
             margin: 0;
+            color: white;
         }
-        .container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-        button { 
-            padding: 12px 24px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            background-color: #111; /* Очень темный серый для кнопок */
-            color: #00ffcc; 
-            border: 2px solid #00ffcc; 
-            border-radius: 8px;
+
+        .container { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; }
+
+        /* Стиль кнопки как на картинке */
+        .rainbow-btn {
+            position: relative;
+            padding: 16px 40px;
+            font-size: 18px;
+            color: white;
+            background: #111; /* Цвет внутри кнопки */
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            outline: none;
+            z-index: 1;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Создаем градиентную рамку */
+        .rainbow-btn::before {
+            content: "";
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            z-index: -1;
+            filter: blur(2px); /* Легкое свечение края */
+            animation: glowing 20s linear infinite;
+            border-radius: 14px;
+        }
+
+        /* Затемняем центр кнопки, чтобы была видна только рамка */
+        .rainbow-btn::after {
+            content: "";
+            position: absolute;
+            inset: 2px; /* Толщина рамки */
+            background: #111;
+            border-radius: 11px;
+            z-index: -1;
             transition: 0.3s;
         }
-        button:hover { 
-            background-color: #00ffcc; 
-            color: #000000; 
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px #00ffcc; /* Неоновое свечение при наведении */
+
+        /* Эффект при наведении */
+        .rainbow-btn:hover::after {
+            background: #1a1a1a; /* Чуть светлее при наведении */
         }
-        h1 {
-            text-transform: uppercase;
-            letter-spacing: 2px;
+
+        .rainbow-btn:hover {
+            transform: scale(1.03);
+            transition: 0.2s;
         }
+
+        /* Анимация перелива */
+        @keyframes glowing {
+            0% { background-position: 0 0; }
+            50% { background-position: 400% 0; }
+            100% { background-position: 0 0; }
+        }
+
+        h1 { font-weight: 300; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>Выберите ресурс</h1>
+    <h1>Get Started</h1>
     
     <div class="container">
-        <button onclick="openPopup('https://github.com')">GitHub</button>
-        <button onclick="openPopup('https://google.com')">Google</button>
-        <button onclick="openPopup('https://youtube.com')">YouTube</button>
-        <button onclick="openPopup('https://open.spotify.com')">Spotify</button>
+        <button class="rainbow-btn" onclick="goTo('https://github.com')">GitHub</button>
+        <button class="rainbow-btn" onclick="goTo('https://google.com')">Google</button>
+        <button class="rainbow-btn" onclick="goTo('https://youtube.com')">YouTube</button>
+        <button class="rainbow-btn" onclick="goTo('https://spotify.com')">Spotify</button>
     </div>
 
     <script>
-        function openPopup(url) {
-            const width = 800;
-            const height = 600;
-            const left = (window.screen.width / 2) - (width / 2);
-            const top = (window.screen.height / 2) - (height / 2);
-            
-            const features = `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no`;
-            
-            window.open(url, '_blank', features);
+        function goTo(url) {
+            window.location.href = url;
         }
     </script>
 
