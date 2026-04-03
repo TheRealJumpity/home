@@ -3,25 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Popup Сайт</title>
+    <title>Панель ссылок</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0; }
-        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        button:hover { background-color: #0056b3; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            gap: 20px;
+            height: 100vh; 
+            background-color: #000000; /* Чистый черный фон */
+            color: #ffffff;
+            margin: 0;
+        }
+        .container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        button { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            background-color: #111; /* Очень темный серый для кнопок */
+            color: #00ffcc; 
+            border: 2px solid #00ffcc; 
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        button:hover { 
+            background-color: #00ffcc; 
+            color: #000000; 
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px #00ffcc; /* Неоновое свечение при наведении */
+        }
+        h1 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
 
-    <button onclick="openPopup()">Открыть окно</button>
+    <h1>Выберите ресурс</h1>
+    
+    <div class="container">
+        <button onclick="openPopup('https://github.com')">GitHub</button>
+        <button onclick="openPopup('https://google.com')">Google</button>
+        <button onclick="openPopup('https://youtube.com')">YouTube</button>
+        <button onclick="openPopup('https://open.spotify.com')">Spotify</button>
+    </div>
 
     <script>
-        function openPopup() {
-            // Замените URL на нужный вам
-            const url = 'https://google.com';
-            const windowName = 'popupWindow';
-            const features = 'width=600,height=400,left=200,top=200,menubar=no,toolbar=no,location=no,status=no';
+        function openPopup(url) {
+            const width = 800;
+            const height = 600;
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
             
-            window.open(url, windowName, features);
+            const features = `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no`;
+            
+            window.open(url, '_blank', features);
         }
     </script>
 
