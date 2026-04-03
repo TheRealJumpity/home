@@ -26,27 +26,40 @@
             animation: clock-glow 4s infinite alternate;
         }
 
-        /* ВЫПАДАЮЩЕЕ МЕНЮ (СИНЕЕ) */
+        /* СИНЕЕ МЕНЮ */
         .commands-dropdown { position: absolute; top: 40px; right: 40px; z-index: 10; }
         select {
             background: rgba(10, 10, 25, 0.95);
-            color: #4488ff; 
-            border: 1px solid #4488ff; 
-            padding: 12px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            outline: none;
-            font-size: 14px;
-            backdrop-filter: blur(10px);
-            transition: 0.3s;
+            color: #4488ff; border: 1px solid #4488ff; 
+            padding: 12px 20px; border-radius: 10px;
+            cursor: pointer; outline: none; font-size: 14px;
+            backdrop-filter: blur(10px); transition: 0.3s;
         }
         select option { background: #000; color: #4488ff; }
-        select:hover { box-shadow: 0 0 15px rgba(68, 136, 255, 0.4); }
 
         /* ТЕКСТОВАЯ ЗОНА */
-        .display-area { text-align: center; margin-bottom: 40px; max-width: 80%; }
-        #status { font-size: 14px; color: #4488ff; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; font-weight: 300; }
+        .display-area { text-align: center; margin-bottom: 20px; max-width: 80%; z-index: 5; }
+        #status { font-size: 14px; color: #4488ff; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; }
         #transcript { font-size: 36px; font-weight: 200; min-height: 60px; color: #ffffff; }
+
+        /* ВОЛНА SIRI */
+        .visualizer {
+            display: none; align-items: center; justify-content: center;
+            gap: 5px; height: 50px; margin-bottom: 20px;
+        }
+        .bar {
+            width: 4px; height: 10px; background: #4488ff;
+            border-radius: 10px; animation: siri-wave 1s ease-in-out infinite;
+        }
+        .bar:nth-child(2) { animation-delay: 0.1s; }
+        .bar:nth-child(3) { animation-delay: 0.2s; }
+        .bar:nth-child(4) { animation-delay: 0.3s; }
+        .bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes siri-wave {
+            0%, 100% { height: 10px; background: #4488ff; }
+            50% { height: 40px; background: #00ffcc; box-shadow: 0 0 15px #4488ff; }
+        }
 
         /* МИКРОФОН */
         .mic-container { position: fixed; bottom: 70px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
@@ -54,28 +67,18 @@
             width: 90px; height: 90px; border-radius: 50%;
             background: #111; border: 2px solid #333;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.4s;
         }
         .mic-btn svg { fill: #4488ff; width: 38px; }
-        .mic-btn.active {
-            border-color: #4488ff;
-            box-shadow: 0 0 60px rgba(68, 136, 255, 0.6);
-            transform: scale(1.1);
-        }
-        .mic-btn.active svg { animation: mic-pulse 1.5s infinite; fill: #fff; }
+        .mic-btn.active { border-color: #4488ff; box-shadow: 0 0 60px rgba(68, 136, 255, 0.4); transform: scale(1.1); }
 
-        @keyframes mic-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        .instruction-text { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 2.5px; text-align: center; }
         @keyframes clock-glow { from { opacity: 0.7; } to { opacity: 1; text-shadow: 0 0 40px rgba(68, 136, 255, 0.9); } }
-
-        /* ТЕКСТ ПОДСКАЗКИ */
-        .instruction-text { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="header-clock">
-        <div id="clock">00:00:00</div>
-    </div>
+    <div class="header-clock"><div id="clock">00:00:00</div></div>
 
     <div class="commands-dropdown">
         <select id="cmd-list">
@@ -84,6 +87,7 @@
             <option>Hi / Hello</option>
             <option>How is your day?</option>
             <option>What can you do?</option>
+            <option>Who are you?</option>
             <option disabled>— Open Sites —</option>
         </select>
     </div>
@@ -93,15 +97,19 @@
         <div id="transcript">Ready for your command</div>
     </div>
 
+    <div class="visualizer" id="wave">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+
     <div class="mic-container">
         <button class="mic-btn" id="mic-btn">
-            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z""")/>></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>></svg>
         </button>
         <span class="instruction-text">Press the microphone or hold spacebar and talk</span>
     </div>
 
     <script>
-        // ПОЛНАЯ БАЗА ДАННЫХ
+        // ПОЛНАЯ БАЗА ДАННЫХ (БЕЗ СОКРАЩЕНИЙ)
         const APP_DATABASE = {
             "spotify": "https://spotify.com",
             "youtube": "https://youtube.com",
@@ -120,14 +128,15 @@
             "roblox": "https://roblox.com",
             "amazon": "https://amazon.com",
             "wikipedia": "https://wikipedia.org",
-            "pinterest": "https://pinterest.com"
+            "pinterest": "https://pinterest.com",
+            "tiktok": "https://tiktok.com",
+            "steam": "https://steampowered.com",
+            "roblox": "https://roblox.com"
         };
 
-        // ЧАСЫ
         function tick() { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }
         setInterval(tick, 1000); tick();
 
-        // ЗАПОЛНЕНИЕ СИНЕГО DROPDOWN
         const sel = document.getElementById('cmd-list');
         Object.keys(APP_DATABASE).sort().forEach(key => {
             let opt = document.createElement('option');
@@ -138,6 +147,7 @@
         const btn = document.getElementById('mic-btn');
         const transcript = document.getElementById('transcript');
         const status = document.getElementById('status');
+        const wave = document.getElementById('wave');
         const synth = window.speechSynthesis;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -147,11 +157,10 @@
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
-
-            recognition.onstart = () => { isListening = true; btn.classList.add('active'); status.innerText = "I'm listening..."; };
-            recognition.onend = () => { isListening = false; btn.classList.remove('active'); status.innerText = "Welcome, I'm Meto!"; };
+            recognition.onstart = () => { isListening = true; btn.classList.add('active'); wave.style.display = 'flex'; status.innerText = "Meto is listening..."; };
+            recognition.onend = () => { isListening = false; btn.classList.remove('active'); wave.style.display = 'none'; status.innerText = "Welcome, I'm Meto!"; };
             recognition.onresult = (e) => {
-                const cmd = e.results[0][0].transcript.toLowerCase();
+                const cmd = e.results[e.results.length - 1].transcript.toLowerCase();
                 transcript.innerText = `"${cmd}"`;
                 processAI(cmd);
             };
@@ -168,26 +177,32 @@
         function stopListening() { if (isListening) { recognition.stop(); } }
 
         btn.onclick = () => { isListening ? stopListening() : startListening(); };
-
-        // ГОРЯЧАЯ КЛАВИША ПРОБЕЛ
         window.onkeydown = (e) => { if (e.code === 'Space' && !isListening) { e.preventDefault(); startListening(); } };
         window.onkeyup = (e) => { if (e.code === 'Space' && isListening) { stopListening(); } };
 
         function processAI(cmd) {
-            if (cmd.includes('hi') || cmd.includes('hello')) speak("Hello! How can I help you today?");
-            else if (cmd.includes('how is your day') || cmd.includes('how are you')) speak("My day is excellent, thank you for asking!");
-            else if (cmd.includes('what can you do')) speak("I can open websites from my database, tell you the time, and have a chat.");
-            else if (cmd.includes('who are you')) speak("I am Meto, your personal AI assistant.");
-            else if (cmd.includes('open')) {
-                let found = false;
+            if (cmd.includes('hi') || cmd.includes('hello')) {
+                speak("Hello! How can I help you today?");
+            } else if (cmd.includes('how is your day') || cmd.includes('how are you')) {
+                speak("My day is excellent, thanks for asking!");
+            } else if (cmd.includes('what can you do')) {
+                speak("I can open dozens of websites and chat with you.");
+            } else if (cmd.includes('who are you')) {
+                speak("I am Meto, your personal AI assistant.");
+            } else if (cmd.includes('open')) {
+                // ФИКС ROBLOX / X: ищем точное слово в массиве
+                let words = cmd.split(/[ ,.!?]+/); 
+                let target = null;
                 for (let site in APP_DATABASE) {
-                    if (cmd.includes(site)) {
-                        speak(`Of course. Opening ${site}.`);
-                        setTimeout(() => { window.location.href = APP_DATABASE[site]; }, 1000);
-                        found = true; break;
-                    }
+                    if (words.includes(site)) { target = site; break; }
                 }
-                if (!found) speak("I don't have that site in my database yet.");
+
+                if (target) {
+                    speak(`Opening ${target}.`);
+                    setTimeout(() => { window.location.href = APP_DATABASE[target]; }, 1000);
+                } else {
+                    speak("I don't have that site in my database yet.");
+                }
             } else {
                 speak("Sorry, but for now I only support open commands.");
             }
