@@ -18,39 +18,20 @@
             overflow: hidden;
         }
 
-        /* ЧАСЫ С АНИМАЦИЕЙ */
-        .header-clock {
-            position: absolute;
-            top: 40px;
-            text-align: center;
-        }
-
+        /* ЧАСЫ */
+        .header-clock { position: absolute; top: 40px; text-align: center; }
         #clock {
-            font-size: 54px;
-            font-weight: 200;
-            letter-spacing: 7px;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(68, 136, 255, 0.6);
+            font-size: 54px; font-weight: 200; letter-spacing: 7px;
+            color: #fff; text-shadow: 0 0 20px rgba(68, 136, 255, 0.6);
             animation: clock-glow 4s infinite alternate;
         }
 
-        @keyframes clock-glow {
-            from { opacity: 0.7; transform: scale(1); }
-            to { opacity: 1; transform: scale(1.02); text-shadow: 0 0 40px rgba(68, 136, 255, 0.9); }
-        }
-
-        /* ВЫПАДАЮЩИЙ СПИСОК */
-        .commands-dropdown {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            z-index: 10;
-        }
-
+        /* ВЫПАДАЮЩЕЕ МЕНЮ (СИНЕЕ) */
+        .commands-dropdown { position: absolute; top: 40px; right: 40px; z-index: 10; }
         select {
-            background: rgba(20, 20, 20, 0.9);
-            color: #00ffcc;
-            border: 1px solid #00ffcc;
+            background: rgba(10, 10, 25, 0.95);
+            color: #4488ff; 
+            border: 1px solid #4488ff; 
             padding: 12px 20px;
             border-radius: 10px;
             cursor: pointer;
@@ -59,48 +40,35 @@
             backdrop-filter: blur(10px);
             transition: 0.3s;
         }
+        select option { background: #000; color: #4488ff; }
+        select:hover { box-shadow: 0 0 15px rgba(68, 136, 255, 0.4); }
 
-        select:hover { box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); }
-
-        /* ЦЕНТРАЛЬНЫЙ БЛОК */
+        /* ТЕКСТОВАЯ ЗОНА */
         .display-area { text-align: center; margin-bottom: 40px; max-width: 80%; }
         #status { font-size: 14px; color: #4488ff; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; font-weight: 300; }
         #transcript { font-size: 36px; font-weight: 200; min-height: 60px; color: #ffffff; }
 
         /* МИКРОФОН */
-        .mic-container {
-            position: fixed;
-            bottom: 70px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .mic-container { position: fixed; bottom: 70px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .mic-btn {
             width: 90px; height: 90px; border-radius: 50%;
             background: #111; border: 2px solid #333;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        .mic-btn svg { fill: #4488ff; width: 38px; transition: 0.3s; }
-
+        .mic-btn svg { fill: #4488ff; width: 38px; }
         .mic-btn.active {
             border-color: #4488ff;
             box-shadow: 0 0 60px rgba(68, 136, 255, 0.6);
             transform: scale(1.1);
         }
-
         .mic-btn.active svg { animation: mic-pulse 1.5s infinite; fill: #fff; }
 
-        @keyframes mic-pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes mic-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        @keyframes clock-glow { from { opacity: 0.7; } to { opacity: 1; text-shadow: 0 0 40px rgba(68, 136, 255, 0.9); } }
 
-        .hover-hint { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 2px; }
+        /* ТЕКСТ ПОДСКАЗКИ */
+        .instruction-text { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; }
     </style>
 </head>
 <body>
@@ -112,12 +80,11 @@
     <div class="commands-dropdown">
         <select id="cmd-list">
             <option disabled selected>Full Database</option>
-            <option>— Dialogues —</option>
+            <option disabled>— Dialogues —</option>
             <option>Hi / Hello</option>
             <option>How is your day?</option>
             <option>What can you do?</option>
-            <option>Who are you?</option>
-            <option>— Open Sites —</option>
+            <option disabled>— Open Sites —</option>
         </select>
     </div>
 
@@ -130,7 +97,7 @@
         <button class="mic-btn" id="mic-btn">
             <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z""")/>></svg>
         </button>
-        <span class="hover-hint">Talk to Meto</span>
+        <span class="instruction-text">Press the microphone or hold spacebar and talk</span>
     </div>
 
     <script>
@@ -153,19 +120,14 @@
             "roblox": "https://roblox.com",
             "amazon": "https://amazon.com",
             "wikipedia": "https://wikipedia.org",
-            "pinterest": "https://pinterest.com",
-            "tiktok": "https://tiktok.com",
-            "steam": "https://steampowered.com"
+            "pinterest": "https://pinterest.com"
         };
 
         // ЧАСЫ
-        function tick() {
-            const d = new Date();
-            document.getElementById('clock').innerText = d.toLocaleTimeString('en-GB');
-        }
+        function tick() { document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }
         setInterval(tick, 1000); tick();
 
-        // ЗАПОЛНЕНИЕ DROPDOWN
+        // ЗАПОЛНЕНИЕ СИНЕГО DROPDOWN
         const sel = document.getElementById('cmd-list');
         Object.keys(APP_DATABASE).sort().forEach(key => {
             let opt = document.createElement('option');
@@ -179,68 +141,55 @@
         const synth = window.speechSynthesis;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        function speak(text) {
-            synth.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'en-US';
-            u.pitch = 1.1; 
-            u.rate = 1.0;
-            synth.speak(u);
-        }
+        let recognition;
+        let isListening = false;
 
         if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
+            recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
 
-            btn.onclick = () => { try { recognition.start(); } catch(e) {} };
-
-            recognition.onstart = () => {
-                btn.classList.add('active');
-                status.innerText = "I'm listening...";
-                transcript.innerText = "";
-            };
-
+            recognition.onstart = () => { isListening = true; btn.classList.add('active'); status.innerText = "I'm listening..."; };
+            recognition.onend = () => { isListening = false; btn.classList.remove('active'); status.innerText = "Welcome, I'm Meto!"; };
             recognition.onresult = (e) => {
                 const cmd = e.results[0][0].transcript.toLowerCase();
                 transcript.innerText = `"${cmd}"`;
                 processAI(cmd);
             };
-
-            recognition.onend = () => {
-                btn.classList.remove('active');
-                status.innerText = "Welcome, I'm Meto!";
-            };
         }
 
+        function speak(text) {
+            synth.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US'; u.pitch = 1.1; u.rate = 1.0;
+            synth.speak(u);
+        }
+
+        function startListening() { if (!isListening) { try { recognition.start(); } catch(e) {} } }
+        function stopListening() { if (isListening) { recognition.stop(); } }
+
+        btn.onclick = () => { isListening ? stopListening() : startListening(); };
+
+        // ГОРЯЧАЯ КЛАВИША ПРОБЕЛ
+        window.onkeydown = (e) => { if (e.code === 'Space' && !isListening) { e.preventDefault(); startListening(); } };
+        window.onkeyup = (e) => { if (e.code === 'Space' && isListening) { stopListening(); } };
+
         function processAI(cmd) {
-            // Диалоги
-            if (cmd.includes('hi') || cmd.includes('hello')) {
-                speak("Hello! How can I help you today?");
-            } 
-            else if (cmd.includes('how is your day') || cmd.includes('how are you')) {
-                speak("My day is wonderful, I am ready to work for you!");
-            }
-            else if (cmd.includes('what can you do')) {
-                speak("I can open dozens of websites from my database and talk to you. Just say open and the site name.");
-            }
-            else if (cmd.includes('who are you')) {
-                speak("I am Meto, your smart AI assistant.");
-            }
-            // Поиск сайтов
+            if (cmd.includes('hi') || cmd.includes('hello')) speak("Hello! How can I help you today?");
+            else if (cmd.includes('how is your day') || cmd.includes('how are you')) speak("My day is excellent, thank you for asking!");
+            else if (cmd.includes('what can you do')) speak("I can open websites from my database, tell you the time, and have a chat.");
+            else if (cmd.includes('who are you')) speak("I am Meto, your personal AI assistant.");
             else if (cmd.includes('open')) {
                 let found = false;
                 for (let site in APP_DATABASE) {
                     if (cmd.includes(site)) {
-                        speak(`Opening ${site} for you.`);
-                        setTimeout(() => { window.open(APP_DATABASE[site], '_blank'); }, 700);
-                        found = true;
-                        break;
+                        speak(`Of course. Opening ${site}.`);
+                        setTimeout(() => { window.location.href = APP_DATABASE[site]; }, 1000);
+                        found = true; break;
                     }
                 }
-                if (!found) speak("I couldn't find that website in my records.");
-            } 
-            else {
-                speak("Sorry, but for now I only support 'open' commands.");
+                if (!found) speak("I don't have that site in my database yet.");
+            } else {
+                speak("Sorry, but for now I only support open commands.");
             }
         }
     </script>
