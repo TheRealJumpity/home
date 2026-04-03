@@ -88,7 +88,7 @@ body {
 <div id="startup-popup">
     <div class="popup-box">
         <h2>Microphone Activation Required</h2>
-        <p>Click anywhere to activate Meto AI voice system.</p>
+        <p>Click anywhere to activate Meto AI system.</p>
         <button id="activate-btn">Activate</button>
     </div>
 </div>
@@ -98,7 +98,7 @@ body {
 
 <!-- DISPLAY -->
 <div class="display-area">
-    <div id="status">Say "Hey Meto"</div>
+    <div id="status">Say commands to Meto AI</div>
     <div id="transcript"></div>
 </div>
 
@@ -167,18 +167,9 @@ function openAnything(cmd) {
     }
 }
 
-/* AI */
+/* HANDLE COMMANDS - REMOVED HEY METO REQUIREMENT */
 function handleAI(cmd) {
-
-    if (!activated) {
-        if (cmd.includes("hey meto")) {
-            activated = true;
-            speak("Yes?");
-            status.innerText = "Listening...";
-        }
-        return;
-    }
-
+    // Always active now, no wake word needed
     if (cmd.includes("open") || cmd.includes("go to")) {
         openAnything(cmd);
     }
@@ -188,9 +179,6 @@ function handleAI(cmd) {
     else {
         speak("Try saying open plus a website.");
     }
-
-    activated = false;
-    status.innerText = "Say 'Hey Meto'";
 }
 
 /* SPEECH SETUP */
@@ -205,9 +193,8 @@ if (SpeechRecognition) {
     };
 
     recognition.onstart = () => {
-    isListening = true;
-    btn.classList.add("active");
-    status.innerText = activated ? "Listening..." : "Say 'Hey Meto'";
+        isListening = true;
+        btn.classList.add("active");
     };
 
     recognition.onend = () => {
@@ -219,16 +206,7 @@ if (SpeechRecognition) {
 
 /* BUTTON */
 btn.onclick = () => {
-    // if not listening → start listening AND activate immediately
-    if (!isListening) {
-        activated = true; // bypass wake word
-        status.innerText = "Listening...";
-        try { recognition.start(); } catch {}
-    } else {
-        recognition.stop();
-        activated = false;
-        status.innerText = "Say 'Hey Meto'";
-    }
+    if (!isListening) recognition.start();
 };
 
 /* POPUP ACTIVATION */
@@ -237,6 +215,7 @@ const activateBtn = document.getElementById('activate-btn');
 
 function activateSite() {
     popup.style.display = "none";
+    activated = true;
     if (recognition && !isListening) {
         try { recognition.start(); } catch {}
     }
@@ -244,7 +223,6 @@ function activateSite() {
 
 activateBtn.onclick = activateSite;
 popup.onclick = activateSite;
-
 </script>
 
 </body>
