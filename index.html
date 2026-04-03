@@ -4,226 +4,104 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meto AI | Ultimate OS</title>
-
 <style>
-body {
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    background: #000;
-    margin: 0;
-    color: white;
-}
-
-/* CLOCK */
-.header-clock { position: absolute; top: 40px; }
-#clock { font-size: 54px; letter-spacing: 7px; }
-
-/* DISPLAY */
-.display-area { text-align: center; }
-#status { color: #4488ff; letter-spacing: 3px; }
-#transcript { font-size: 32px; }
-
-/* MIC */
-.mic-container { position: fixed; bottom: 70px; text-align: center; }
-.mic-btn {
-    width: 90px; height: 90px;
-    border-radius: 50%;
-    background: #111;
-    border: 2px solid #333;
-    cursor: pointer;
-}
-.mic-btn.active {
-    border-color: #4488ff;
-    box-shadow: 0 0 40px #4488ff;
-}
-
-/* POPUP */
-#startup-popup {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.popup-box {
-    background: #111;
-    border: 1px solid #4488ff;
-    border-radius: 16px;
-    padding: 30px;
-    width: 320px;
-    text-align: center;
-    box-shadow: 0 0 40px rgba(68,136,255,0.4);
-}
-
-.popup-box h2 {
-    color: #4488ff;
-}
-
-.popup-box p {
-    color: #ccc;
-}
-
-#activate-btn {
-    background: #4488ff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    color: white;
-    cursor: pointer;
-    margin-top: 15px;
-}
+body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #000; margin: 0; color: white; overflow: hidden; }
+.header-clock { position: absolute; top: 40px; text-align: center; }
+#clock { font-size: 54px; font-weight: 200; letter-spacing: 7px; color: #fff; text-shadow: 0 0 20px rgba(68, 136, 255, 0.6); animation: clock-glow 4s infinite alternate; }
+.commands-dropdown { position: absolute; top: 40px; right: 40px; z-index: 10; }
+select { background: rgba(10, 10, 25, 0.95); color: #4488ff; border: 1px solid #4488ff; padding: 12px 20px; border-radius: 10px; cursor: pointer; outline: none; font-size: 14px; backdrop-filter: blur(10px); transition: 0.3s; }
+select option { background: #000; color: #4488ff; }
+.display-area { text-align: center; margin-bottom: 20px; max-width: 80%; z-index: 5; }
+#status { font-size: 14px; color: #4488ff; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; }
+#transcript { font-size: 36px; font-weight: 200; min-height: 60px; color: #ffffff; }
+.visualizer { display: none; align-items: center; justify-content: center; gap: 5px; height: 50px; margin-bottom: 20px; }
+.bar { width: 4px; height: 10px; background: #4488ff; border-radius: 10px; animation: siri-wave 1s ease-in-out infinite; }
+@keyframes siri-wave { 0%, 100% { height: 10px; background: #4488ff; } 50% { height: 40px; background: #00ffcc; box-shadow: 0 0 15px #4488ff; } }
+.mic-container { position: fixed; bottom: 70px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.mic-btn { width: 90px; height: 90px; border-radius: 50%; background: #111; border: 2px solid #333; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.4s; }
+.mic-btn svg { fill: #4488ff; width: 38px; height: 38px; }
+.mic-btn.active { border-color: #4488ff; box-shadow: 0 0 60px rgba(68, 136, 255, 0.6); transform: scale(1.1); }
+.instruction-text { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 2.5px; text-align: center; }
+@keyframes clock-glow { from { opacity: 0.7; } to { opacity: 1; text-shadow: 0 0 40px rgba(68, 136, 255, 0.9); } }
 </style>
 </head>
-
 <body>
-
-<!-- POPUP -->
-<div id="startup-popup">
-    <div class="popup-box">
-        <h2>Microphone Activation Required</h2>
-        <p>Click anywhere to activate Meto AI system.</p>
-        <button id="activate-btn">Activate</button>
-    </div>
-</div>
-
-<!-- CLOCK -->
-<div class="header-clock"><div id="clock"></div></div>
-
-<!-- DISPLAY -->
-<div class="display-area">
-    <div id="status">Say commands to Meto AI</div>
-    <div id="transcript"></div>
-</div>
-
-<!-- MIC -->
+<div class="header-clock"><div id="clock">00:00:00</div></div>
+<div class="commands-dropdown"><select id="cmd-list"><option disabled selected>Full Database</option></select></div>
+<div class="display-area"><div id="status">Welcome, I'm Meto!</div><div id="transcript">Ready for your command</div></div>
+<div class="visualizer" id="wave"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
 <div class="mic-container">
-    <button class="mic-btn" id="mic-btn">🎤</button>
+    <button class="mic-btn" id="mic-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H7c0 3.31 2.69 6 6 6s6-2.69 6-6h-1zM11 19h2v3h-2z"/></svg>
+    </button>
+    <span class="instruction-text">Press the microphone or hold spacebar and talk</span>
 </div>
 
 <script>
+// DATABASE
+const APP_DB = {
+"spotify":"https://spotify.com","youtube":"https://youtube.com","github":"https://github.com","google":"https://google.com","gmail":"https://google.com",
+"discord":"https://discord.com","netflix":"https://netflix.com","twitter":"https://twitter.com","x":"https://x.com","reddit":"https://reddit.com",
+"instagram":"https://instagram.com","facebook":"https://facebook.com","twitch":"https://twitch.tv","chatgpt":"https://openai.com","roblox":"https://roblox.com",
+"amazon":"https://amazon.com","wikipedia":"https://wikipedia.org","pinterest":"https://pinterest.com","tiktok":"https://tiktok.com",
+"steam":"https://steampowered.com","snapchat":"https://snapchat.com","linkedin":"https://linkedin.com","telegram":"https://telegram.org","whatsapp":"https://whatsapp.com"
+};
+
+const sel = document.getElementById('cmd-list');
+Object.keys(APP_DB).sort().forEach(k=>{
+    let o = document.createElement('option');
+    o.text = `Open ${k.charAt(0).toUpperCase() + k.slice(1)}`;
+    sel.add(o);
+});
+
+// CLOCK
+function tick(){ document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB'); }
+setInterval(tick,1000); tick();
+
+// SPEECH
+const btn = document.getElementById('mic-btn');
+const transcript = document.getElementById('transcript');
+const status = document.getElementById('status');
+const wave = document.getElementById('wave');
 const synth = window.speechSynthesis;
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const transcript = document.getElementById('transcript');
-const status = document.getElementById('status');
-const btn = document.getElementById('mic-btn');
+let recognition; let isListening=false;
 
-let recognition;
-let isListening = false;
-let activated = false;
-
-/* CLOCK */
-setInterval(() => {
-    document.getElementById('clock').innerText =
-        new Date().toLocaleTimeString();
-}, 1000);
-
-/* SPEAK */
-function speak(text) {
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    synth.speak(u);
-}
-
-/* PARSE SITE */
-function extractSite(cmd) {
-    cmd = cmd.replace("open", "").replace("go to", "").trim();
-
-    if (cmd.includes(".")) return cmd;
-
-    const map = {
-        youtube: "youtube.com",
-        google: "google.com",
-        discord: "discord.com",
-        roblox: "roblox.com"
-    };
-
-    for (let key in map) {
-        if (cmd.includes(key)) return map[key];
-    }
-
-    return null;
-}
-
-/* OPEN ANYTHING */
-function openAnything(cmd) {
-    let site = extractSite(cmd);
-
-    if (site) {
-        if (!site.startsWith("http")) site = "https://" + site;
-        speak("Opening " + site);
-        window.location.href = site;
-    } else {
-        speak("Searching for " + cmd);
-        window.location.href =
-            "https://www.google.com/search?q=" + encodeURIComponent(cmd);
-    }
-}
-
-/* HANDLE COMMANDS - REMOVED HEY METO REQUIREMENT */
-function handleAI(cmd) {
-    // Always active now, no wake word needed
-    if (cmd.includes("open") || cmd.includes("go to")) {
-        openAnything(cmd);
-    }
-    else if (cmd.includes("time")) {
-        speak("The time is " + new Date().toLocaleTimeString());
-    }
-    else {
-        speak("Try saying open plus a website.");
-    }
-}
-
-/* SPEECH SETUP */
-if (SpeechRecognition) {
+if(SpeechRecognition){
     recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    recognition.lang='en-US';
+    recognition.continuous=true;
 
+    recognition.onstart = () => { isListening=true; btn.classList.add('active'); wave.style.display='flex'; status.innerText="Listening..."; };
+    recognition.onend   = () => { isListening=false; btn.classList.remove('active'); wave.style.display='none'; status.innerText="Welcome, I'm Meto!"; };
     recognition.onresult = (e) => {
-        const cmd = e.results[e.results.length - 1][0].transcript.toLowerCase();
-        transcript.innerText = cmd;
+        const cmd = e.results[e.results.length-1][0].transcript.toLowerCase();
+        transcript.innerText = `"${cmd}"`;
         handleAI(cmd);
     };
-
-    recognition.onstart = () => {
-        isListening = true;
-        btn.classList.add("active");
-    };
-
-    recognition.onend = () => {
-        isListening = false;
-        btn.classList.remove("active");
-        recognition.start();
-    };
 }
 
-/* BUTTON */
-btn.onclick = () => {
-    if (!isListening) recognition.start();
-};
+function speak(t){ synth.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='en-US'; u.pitch=1.1; u.rate=1.0; synth.speak(u); }
+function start(){ if(!isListening){ try{ recognition.start(); } catch(e){} } }
+function stop(){ if(isListening){ recognition.stop(); } }
 
-/* POPUP ACTIVATION */
-const popup = document.getElementById('startup-popup');
-const activateBtn = document.getElementById('activate-btn');
+btn.onclick = ()=>isListening?stop():start();
+window.onkeydown = (e)=>{ if(e.code==='Space' && !isListening){ e.preventDefault(); start(); } };
+window.onkeyup = (e)=>{ if(e.code==='Space' && isListening){ stop(); } };
 
-function activateSite() {
-    popup.style.display = "none";
-    activated = true;
-    if (recognition && !isListening) {
-        try { recognition.start(); } catch {}
-    }
+// AI
+function handleAI(cmd){
+    const words = cmd.split(/\s+/);
+    if(words.includes('hi') || words.includes('hello')) speak("Hello! How can I help you?");
+    else if(cmd.includes('how are you')) speak("I'm doing great, thanks for asking!");
+    else if(cmd.includes('what can you do')) speak("I can open websites, tell you the time, and chat with you.");
+    else if(cmd.includes('open')){
+        let target = Object.keys(APP_DB).find(site=>words.includes(site));
+        if(target){ speak(`Opening ${target}`); setTimeout(()=>{ window.location.href=APP_DB[target]; },1000); }
+        else{ speak("I don't have that site in my records."); }
+    } else{ speak("I heard you, but I mainly support open commands."); }
 }
-
-activateBtn.onclick = activateSite;
-popup.onclick = activateSite;
 </script>
-
 </body>
 </html>
