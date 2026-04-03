@@ -3,193 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meto AI | Terminal Edition</title>
+    <title>Meto AI | Control Panel</title>
     <style>
         body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
-            justify-content: center;
+            justify-content: space-between;
             height: 100vh; 
             background-color: #000; 
             margin: 0;
             color: white;
+            padding: 40px 0;
             overflow: hidden;
         }
 
-        .display-area { text-align: center; margin-bottom: 60px; padding: 0 20px; }
-        
-        #status {
-            font-size: 12px;
-            color: #4488ff;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 15px;
-            height: 20px;
+        /* ТЕ САМЫЕ КНОПКИ СВЕРХУ */
+        .container { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; padding: 20px; }
+        .nav-btn { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            background-color: #111; 
+            color: #00ffcc; 
+            border: 2px solid #00ffcc; 
+            border-radius: 8px;
+            transition: 0.3s;
+            text-decoration: none;
         }
+        .nav-btn:hover { background-color: #00ffcc; color: #000; box-shadow: 0 0 15px #00ffcc; }
 
-        #transcript {
-            font-size: 28px;
-            font-weight: 300;
-            color: #ffffff;
-            min-height: 40px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
+        /* ИНДИКАТОР ТЕКСТА */
+        .display-area { text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        #status { color: #4488ff; letter-spacing: 2px; text-transform: uppercase; font-size: 12px; margin-bottom: 10px; }
+        #transcript { font-size: 24px; font-weight: 300; min-height: 40px; color: #fff; }
 
-        .mic-container {
-            position: fixed;
-            bottom: 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
+        /* МИКРОФОН СНИЗУ */
+        .mic-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
         .mic-btn {
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
-            background: #111;
-            border: 1px solid #222;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.4s ease;
-            box-shadow: 0 0 0 rgba(68, 136, 255, 0);
-        }
-
-        .mic-btn svg { fill: #666; width: 35px; transition: 0.3s; }
-
-        /* Состояние прослушивания */
-        .listening {
-            border-color: #4488ff;
-            box-shadow: 0 0 40px rgba(68, 136, 255, 0.4);
-            transform: scale(1.1);
-        }
-
-        .listening svg {
-            fill: #4488ff;
-            animation: breathe 2s infinite ease-in-out;
-        }
-
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.15); opacity: 0.6; }
-        }
-
-        .hover-hint {
-            opacity: 0;
-            font-size: 13px;
-            color: #444;
-            letter-spacing: 1px;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: #111; border: 2px solid #4488ff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: 0.3s;
         }
+        .mic-btn svg { fill: #4488ff; width: 30px; }
+        .mic-btn.active { transform: scale(1.2); box-shadow: 0 0 30px #4488ff; animation: pulse 1.5s infinite; }
 
-        .mic-container:hover .hover-hint { opacity: 1; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .hover-text { opacity: 0; font-size: 14px; color: #555; transition: 0.3s; }
+        .mic-container:hover .hover-text { opacity: 1; }
     </style>
 </head>
 <body>
 
+    <div class="container">
+        <button class="nav-btn" onclick="window.location.href='https://github.com'">GitHub</button>
+        <button class="nav-btn" onclick="window.location.href='https://google.com'">Google</button>
+        <button class="nav-btn" onclick="window.location.href='https://youtube.com'">YouTube</button>
+        <button class="nav-btn" onclick="window.location.href='https://spotify.com'">Spotify</button>
+    </div>
+
     <div class="display-area">
-        <div id="status">System Idle</div>
-        <div id="transcript">Listening for "Open..."</div>
+        <div id="status">System Ready</div>
+        <div id="transcript">Click mic to talk</div>
     </div>
 
     <div class="mic-container">
-        <button class="mic-btn" id="mic-btn">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z""")/>>
-            </svg>
+        <button class="mic-btn" id="start-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z""")/>><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z""")/>></svg>
         </button>
-        <span class="hover-hint">Talk to Meto</span>
+        <span class="hover-text">Talk to Meto</span>
     </div>
 
     <script>
-        // БАЗА ДАННЫХ КОМАНД (Легко дополнять)
-        const APP_DATABASE = {
+        const APP_DB = {
             "spotify": "https://spotify.com",
-            "youtube": "https://youtube.com",
             "github": "https://github.com",
             "google": "https://google.com",
-            "gmail": "https://google.com",
-            "discord": "https://discord.com",
-            "netflix": "https://netflix.com",
-            "twitter": "https://twitter.com",
-            "x": "https://x.com",
-            "reddit": "https://reddit.com",
-            "instagram": "https://instagram.com",
-            "facebook": "https://facebook.com",
-            "twitch": "https://twitch.tv",
-            "chatgpt": "https://openai.com",
-            "roblox": "https://roblox.com",
-            "amazon": "https://amazon.com",
-            "wikipedia": "https://wikipedia.org",
-            "pinterest": "https://pinterest.com"
+            "youtube": "https://youtube.com"
         };
 
-        const btn = document.getElementById('mic-btn');
-        const statusText = document.getElementById('status');
+        const btn = document.getElementById('start-btn');
         const transcriptText = document.getElementById('transcript');
+        const statusText = document.getElementById('status');
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const synth = window.speechSynthesis;
 
         if (!SpeechRecognition) {
-            transcriptText.innerText = "Speech API not supported";
+            transcriptText.innerText = "Browser not supported";
         } else {
             const recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
 
-            btn.onclick = () => {
-                try { recognition.start(); } catch(e) {}
-            };
+            btn.onclick = () => { recognition.start(); };
 
             recognition.onstart = () => {
-                btn.classList.add('listening');
-                statusText.innerText = "Meto is Listening";
-                transcriptText.innerText = "...";
+                btn.classList.add('active');
+                statusText.innerText = "Listening...";
             };
 
             recognition.onresult = (event) => {
-                const command = event.results[0].transcript.toLowerCase();
-                transcriptText.innerText = `"${command}"`;
-                handleVoiceCommand(command);
+                const result = event.results[0][0].transcript.toLowerCase();
+                transcriptText.innerText = `"${result}"`;
+                handleCommand(result);
             };
 
             recognition.onend = () => {
-                btn.classList.remove('listening');
-                statusText.innerText = "System Idle";
+                btn.classList.remove('active');
+                statusText.innerText = "System Ready";
             };
         }
 
         function speak(text) {
-            synth.cancel(); // Остановить текущую речь, если есть
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            utterance.rate = 1.0;
-            utterance.pitch = 0.9; // Чуть более глубокий голос
-            synth.speak(utterance);
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US';
+            synth.speak(u);
         }
 
-        function handleVoiceCommand(cmd) {
-            // Проверяем, начинается ли команда с "open"
-            if (cmd.startsWith('open ')) {
-                const target = cmd.replace('open ', '').trim();
-                
-                if (APP_DATABASE[target]) {
-                    speak(`Opening ${target} for you.`);
-                    // Небольшая задержка, чтобы браузер не блокировал окно после речи
-                    setTimeout(() => {
-                        window.open(APP_DATABASE[target], '_blank');
-                    }, 500);
-                } else {
-                    speak("Sorry, I don't have that website in my database yet.");
+        function handleCommand(cmd) {
+            // Кто ты?
+            if (cmd.includes('who are you') || cmd.includes('what is your name')) {
+                speak("I am Meto, your AI assistant.");
+                return;
+            }
+
+            // Логика OPEN
+            if (cmd.includes('open')) {
+                let found = false;
+                for (let app in APP_DB) {
+                    if (cmd.includes(app)) {
+                        speak(`Opening ${app}`);
+                        setTimeout(() => { window.open(APP_DB[app], '_blank'); }, 500);
+                        found = true;
+                        break;
+                    }
                 }
+                if (!found) speak("Sorry, I don't have that site in my database.");
             } else {
-                // Если команда не распознана или не "open"
+                // Если нет слова open
                 speak("Sorry, but for now I only support 'open' commands.");
             }
         }
