@@ -205,8 +205,9 @@ if (SpeechRecognition) {
     };
 
     recognition.onstart = () => {
-        isListening = true;
-        btn.classList.add("active");
+    isListening = true;
+    btn.classList.add("active");
+    status.innerText = activated ? "Listening..." : "Say 'Hey Meto'";
     };
 
     recognition.onend = () => {
@@ -218,7 +219,16 @@ if (SpeechRecognition) {
 
 /* BUTTON */
 btn.onclick = () => {
-    if (!isListening) recognition.start();
+    // if not listening → start listening AND activate immediately
+    if (!isListening) {
+        activated = true; // bypass wake word
+        status.innerText = "Listening...";
+        try { recognition.start(); } catch {}
+    } else {
+        recognition.stop();
+        activated = false;
+        status.innerText = "Say 'Hey Meto'";
+    }
 };
 
 /* POPUP ACTIVATION */
