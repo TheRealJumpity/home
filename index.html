@@ -70,27 +70,26 @@ body::before{
 </div>
 
 <script>
-// ================= VOICE SETUP =================
+// ================= VOICE =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.continuous = false;
 recognition.interimResults = false;
 recognition.lang = 'en-US';
 
-// ================= UI =================
 const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= VOICE =================
+// ================= VOICE OUTPUT =================
 let voices = [];
 function loadVoices(){ voices = speechSynthesis.getVoices(); }
 loadVoices();
 speechSynthesis.onvoiceschanged = loadVoices;
 
 function getBestVoice(){
-  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('deep') || v.name.toLowerCase().includes('natural'))) 
-      || voices.find(v => v.lang.includes('en')) 
+  return voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male'))
+      || voices.find(v => v.lang.includes('en'))
       || voices[0];
 }
 
@@ -99,9 +98,7 @@ function speak(text){
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.85;
   utter.pitch = 0.8;
-  utter.volume = 1;
-  const voice = getBestVoice();
-  if(voice) utter.voice = voice;
+  utter.voice = getBestVoice();
   speechSynthesis.speak(utter);
 }
 
@@ -109,7 +106,7 @@ function speak(text){
 let sites = {};
 fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
 
-// ================= LOGIC =================
+// ================= FUNCTIONS =================
 function findMatch(q){
   q=q.toLowerCase();
   for(const k in sites){
@@ -119,7 +116,7 @@ function findMatch(q){
 }
 
 function delayedOpen(url){
-  setTimeout(()=>{ window.open(url,'_blank'); }, 900);
+  setTimeout(()=>window.open(url,'_blank'), 900);
 }
 
 function openSite(q){
@@ -127,8 +124,7 @@ function openSite(q){
   if(match){
     speak('Opening ' + q);
     delayedOpen(match);
-  }else{
-    // if not found, safer to search instead of fake .com
+  } else {
     speak('Searching ' + q);
     delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
   }
@@ -144,13 +140,7 @@ function searchSite(site,term){
   }
 }
 
-function fallback(q){
-  // default = search (never open random .com)
-  speak('Searching ' + q);
-  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
-}
-
-// ================= FIXED PARSER =================
+// ================= FINAL FIXED PARSER =================
 function parse(text){
   text = text.toLowerCase().trim();
   log.textContent = 'Heard: ' + text;
@@ -159,9 +149,23 @@ function parse(text){
     text = text.replace('hey meto','').trim();
   }
 
-  // 🔴 STRICT SEARCH
+  // ✅ OPEN (FIRST)
+  if(text.startsWith('open ')){
+    openSite(text.replace('open ', '').trim());
+    return;
+  }
+  if(text.startsWith('go to ')){
+    openSite(text.replace('go to ', '').trim());
+    return;
+  }
+  if(text.startsWith('launch ')){
+    openSite(text.replace('launch ', '').trim());
+    return;
+  }
+
+  // ✅ SEARCH (SECOND)
   if(text.startsWith('search ')){
-    const clean = text.replace('search ', '');
+    const clean = text.replace('search ', '').trim();
     const match = clean.match(/(.+?)\s+on\s+(.+)/);
 
     if(match){
@@ -173,27 +177,20 @@ function parse(text){
     return;
   }
 
-  // 🟢 STRICT OPEN
-  let open = text.match(/^(open|go to|launch)\s+(.+)/);
-  if(open){
-    openSite(open[2]);
-    return;
-  }
-
-  // 🧠 DEFAULT
-  fallback(text);
+  // ✅ DEFAULT
+  speak('Searching ' + text);
+  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(text)}`);
 }
 
 // ================= EVENTS =================
-recognition.onresult=e=>{
-  const text=e.results[0][0].transcript;
-  parse(text);
-}
+recognition.onresult = e => {
+  parse(e.results[0][0].transcript);
+};
 
-recognition.onend=()=>{
+recognition.onend = () => {
   wave.classList.remove('active');
-  status.textContent='Hold SPACE to talk';
-}
+  status.textContent = 'Hold SPACE to talk';
+};
 
 let holding=false;
 window.addEventListener('keydown',e=>{
