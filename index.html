@@ -85,28 +85,29 @@ const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= NICE VOICE USING ELEVENLABS =================
-// Use your own API key here
-const ELEVENLABS_API_KEY = "YOUR_API_KEY_HERE"; // replace with your ElevenLabs key
-const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // realistic female voice demo
+let selectedVoice = null;
 
-async function speak(text){
+// Load the most natural English voice available
+function loadVoice(){
+  const voices = speechSynthesis.getVoices();
+  // Prefer female or expressive voices
+  selectedVoice = voices.find(v => v.lang.startsWith('en') && /female|Google UK English|Samantha/i.test(v.name)) || voices[0];
+}
+
+speechSynthesis.onvoiceschanged = loadVoice;
+
+// ================= NICE VOICE FUNCTION =================
+function speak(text){
+  if(!selectedVoice) loadVoice();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.voice = selectedVoice;
+  utterance.rate = 0.95;   // Slightly slower for clarity
+  utterance.pitch = 1.1;   // Slightly higher for friendliness
+  utterance.volume = 1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
   status.textContent = "Speaking...";
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
-    method:'POST',
-    headers:{
-      "Accept":"audio/mpeg",
-      "Content-Type":"application/json",
-      "xi-api-key": ELEVENLABS_API_KEY
-    },
-    body: JSON.stringify({text})
-  });
-
-  const audioBlob = await res.blob();
-  const audioUrl = URL.createObjectURL(audioBlob);
-  const audio = new Audio(audioUrl);
-  audio.play();
-  audio.onended = () => status.textContent = "Ready";
+  utterance.onend = () => status.textContent = "Ready";
 }
 
 // ================= LOAD SITES =================
@@ -128,7 +129,6 @@ function openSite(q){
       return;
     }
   }
-
   speak("Searching " + q);
   setTimeout(()=>window.open(`https://google.com/search?q=${q}`),800);
 }
