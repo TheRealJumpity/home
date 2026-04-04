@@ -84,15 +84,13 @@ const log = document.getElementById('log');
 
 // ================= VOICE =================
 let voices = [];
-function loadVoices(){
-  voices = speechSynthesis.getVoices();
-}
+function loadVoices(){ voices = speechSynthesis.getVoices(); }
 loadVoices();
 speechSynthesis.onvoiceschanged = loadVoices;
 
 function getBestVoice(){
-  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('natural')))
-      || voices.find(v => v.lang.includes('en'))
+  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('deep') || v.name.toLowerCase().includes('natural'))) 
+      || voices.find(v => v.lang.includes('en')) 
       || voices[0];
 }
 
@@ -102,10 +100,8 @@ function speak(text){
   utter.rate = 0.85;
   utter.pitch = 0.8;
   utter.volume = 1;
-
   const voice = getBestVoice();
   if(voice) utter.voice = voice;
-
   speechSynthesis.speak(utter);
 }
 
@@ -123,9 +119,7 @@ function findMatch(q){
 }
 
 function delayedOpen(url){
-  setTimeout(()=>{
-    window.open(url,'_blank');
-  }, 900);
+  setTimeout(()=>{ window.open(url,'_blank'); }, 900);
 }
 
 function openSite(q){
@@ -134,6 +128,7 @@ function openSite(q){
     speak('Opening ' + q);
     delayedOpen(match);
   }else{
+    // if not found, safer to search instead of fake .com
     speak('Searching ' + q);
     delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
   }
@@ -149,6 +144,12 @@ function searchSite(site,term){
   }
 }
 
+function fallback(q){
+  // default = search (never open random .com)
+  speak('Searching ' + q);
+  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
+}
+
 // ================= FIXED PARSER =================
 function parse(text){
   text = text.toLowerCase().trim();
@@ -158,10 +159,9 @@ function parse(text){
     text = text.replace('hey meto','').trim();
   }
 
-  // 🔴 SEARCH ALWAYS PRIORITY
+  // 🔴 STRICT SEARCH
   if(text.startsWith('search ')){
     const clean = text.replace('search ', '');
-
     const match = clean.match(/(.+?)\s+on\s+(.+)/);
 
     if(match){
@@ -173,16 +173,15 @@ function parse(text){
     return;
   }
 
-  // 🟢 OPEN
+  // 🟢 STRICT OPEN
   let open = text.match(/^(open|go to|launch)\s+(.+)/);
   if(open){
     openSite(open[2]);
     return;
   }
 
-  // 🧠 DEFAULT → SEARCH
-  speak('Searching ' + text);
-  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(text)}`);
+  // 🧠 DEFAULT
+  fallback(text);
 }
 
 // ================= EVENTS =================
