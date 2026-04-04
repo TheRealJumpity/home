@@ -17,6 +17,7 @@ body{
   align-items:center;
   justify-content:center;
   overflow:hidden;
+  position:relative;
 }
 
 body::before{
@@ -65,7 +66,6 @@ body::before{
   font-size:14px;
   opacity:.7;
 }
-
 </style>
 </head>
 <body>
@@ -85,18 +85,32 @@ const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= VOICE =================
-function speak(text){
-  speechSynthesis.cancel();
-  let u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.9;
-  u.pitch = 0.8;
-  speechSynthesis.speak(u);
+// ================= NICE VOICE USING ELEVENLABS =================
+// Use your own API key here
+const ELEVENLABS_API_KEY = "YOUR_API_KEY_HERE"; // replace with your ElevenLabs key
+const VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // realistic female voice demo
+
+async function speak(text){
+  status.textContent = "Speaking...";
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
+    method:'POST',
+    headers:{
+      "Accept":"audio/mpeg",
+      "Content-Type":"application/json",
+      "xi-api-key": ELEVENLABS_API_KEY
+    },
+    body: JSON.stringify({text})
+  });
+
+  const audioBlob = await res.blob();
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audio = new Audio(audioUrl);
+  audio.play();
+  audio.onended = () => status.textContent = "Ready";
 }
 
 // ================= LOAD SITES =================
 let sites = {};
-
 fetch('sites.json')
   .then(r => r.json())
   .then(d => {
