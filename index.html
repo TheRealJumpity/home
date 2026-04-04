@@ -66,126 +66,110 @@ body::before{
 <div class="hints">
   <div><span>open</span> youtube</div>
   <div><span>search</span> cats</div>
-  <div><span>search</span> memes on youtube</div>
+  <div><span>search</span> toys on amazon</div>
 </div>
 
 <script>
-// ================= VOICE =================
+// ================= SPEECH =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
-recognition.continuous = false;
-recognition.interimResults = false;
 recognition.lang = 'en-US';
 
 const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= VOICE OUTPUT =================
+// ================= VOICE =================
 let voices = [];
-function loadVoices(){ voices = speechSynthesis.getVoices(); }
-loadVoices();
-speechSynthesis.onvoiceschanged = loadVoices;
-
-function getBestVoice(){
-  return voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male'))
-      || voices.find(v => v.lang.includes('en'))
-      || voices[0];
-}
+speechSynthesis.onvoiceschanged = () => voices = speechSynthesis.getVoices();
 
 function speak(text){
   speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.85;
-  utter.pitch = 0.8;
-  utter.voice = getBestVoice();
-  speechSynthesis.speak(utter);
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.85;
+  u.pitch = 0.8;
+  u.voice = voices.find(v=>v.lang.includes('en')) || voices[0];
+  speechSynthesis.speak(u);
 }
 
 // ================= DATABASE =================
 let sites = {};
 fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
 
-// ================= FUNCTIONS =================
-function findMatch(q){
-  q=q.toLowerCase();
-  for(const k in sites){
-    if(k.includes(q)||q.includes(k)) return sites[k];
-  }
-  return null;
-}
-
-function delayedOpen(url){
-  setTimeout(()=>window.open(url,'_blank'), 900);
-}
-
+// ================= CORE =================
 function openSite(q){
-  const match = findMatch(q);
-  if(match){
-    speak('Opening ' + q);
-    delayedOpen(match);
-  } else {
-    speak('Searching ' + q);
-    delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
+  q = q.toLowerCase();
+
+  for(const k in sites){
+    if(q.includes(k)){
+      speak('Opening ' + k);
+      setTimeout(()=>window.open(sites[k], '_blank'), 900);
+      return;
+    }
   }
+
+  speak('Searching ' + q);
+  setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`), 900);
 }
 
-function searchSite(site,term){
+function searchOnSite(site, term){
+  site = site.toLowerCase();
+
   if(site.includes('youtube')){
-    speak('Searching YouTube');
-    delayedOpen(`https://youtube.com/results?search_query=${term}`);
-  } else {
-    speak('Searching ' + term);
-    delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(term)}`);
+    window.open(`https://youtube.com/results?search_query=${term}`);
+  }
+  else if(site.includes('amazon')){
+    window.open(`https://www.amazon.com/s?k=${term}`);
+  }
+  else if(site.includes('google')){
+    window.open(`https://www.google.com/search?q=${term}`);
+  }
+  else{
+    window.open(`https://www.google.com/search?q=${term}`);
   }
 }
 
-// ================= FINAL FIXED PARSER =================
+// ================= SMART PARSER =================
 function parse(text){
   text = text.toLowerCase().trim();
   log.textContent = 'Heard: ' + text;
 
-  if(text.startsWith('hey meto')){
-    text = text.replace('hey meto','').trim();
-  }
+  // remove wake word
+  text = text.replace('hey meto','').trim();
 
-  // ✅ OPEN (FIRST)
-  if(text.startsWith('open ')){
-    openSite(text.replace('open ', '').trim());
-    return;
-  }
-  if(text.startsWith('go to ')){
-    openSite(text.replace('go to ', '').trim());
-    return;
-  }
-  if(text.startsWith('launch ')){
-    openSite(text.replace('launch ', '').trim());
-    return;
-  }
+  // 🔴 SEARCH DETECTION (more flexible)
+  if(text.includes('search')){
+    let clean = text.replace('search','').trim();
 
-  // ✅ SEARCH (SECOND)
-  if(text.startsWith('search ')){
-    const clean = text.replace('search ', '').trim();
-    const match = clean.match(/(.+?)\s+on\s+(.+)/);
+    let match = clean.match(/(.+?) on (.+)/);
 
     if(match){
-      searchSite(match[2], match[1]);
-    } else {
-      speak('Searching ' + clean);
-      delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(clean)}`);
+      let term = match[1];
+      let site = match[2];
+      speak('Searching ' + term);
+      setTimeout(()=>searchOnSite(site, term), 700);
+      return;
     }
+
+    speak('Searching ' + clean);
+    setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(clean)}`), 700);
     return;
   }
 
-  // ✅ DEFAULT
+  // 🟢 OPEN DETECTION (flexible)
+  if(text.includes('open') || text.includes('go to') || text.includes('launch')){
+    let clean = text.replace(/open|go to|launch/g,'').trim();
+    openSite(clean);
+    return;
+  }
+
+  // 🧠 DEFAULT
   speak('Searching ' + text);
-  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(text)}`);
+  setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(text)}`), 700);
 }
 
 // ================= EVENTS =================
-recognition.onresult = e => {
-  parse(e.results[0][0].transcript);
-};
+recognition.onresult = e => parse(e.results[0][0].transcript);
 
 recognition.onend = () => {
   wave.classList.remove('active');
