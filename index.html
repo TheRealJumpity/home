@@ -2,195 +2,90 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meto AI</title>
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-body{
-  height:100vh;
-  background:linear-gradient(135deg,#0a0a0a,#111827);
-  color:white;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-body::before{
-  content:"";
-  position:absolute;
-  width:600px;height:600px;
-  background:radial-gradient(circle,rgba(0,255,255,0.15),transparent 70%);
-  filter:blur(80px);
-  animation:float 6s infinite alternate ease-in-out;
-}
-@keyframes float{from{transform:translateY(-40px)}to{transform:translateY(40px)}}
-
-.title{position:absolute;top:40px;font-size:32px;letter-spacing:2px;opacity:.9}
-
-#wave{
-  width:180px;height:180px;border-radius:50%;
-  background:radial-gradient(circle,#00f0ff,#0066ff);
-  box-shadow:0 0 40px rgba(0,255,255,.6);
-  transition:.2s ease;position:relative;
-}
-#wave.active{transform:scale(1.25);box-shadow:0 0 80px rgba(0,255,255,1)}
-#wave::after{
-  content:"";position:absolute;width:180px;height:180px;border-radius:50%;
-  border:2px solid rgba(0,255,255,.4);
-  animation:pulse 2s infinite;
-}
-@keyframes pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.8);opacity:0}}
-
-#status{position:absolute;bottom:80px;font-size:18px;opacity:.8}
-#log{position:absolute;bottom:40px;font-size:14px;opacity:.6;text-align:center}
-
-.hints{
-  position:absolute;right:30px;top:100px;
-  background:rgba(255,255,255,0.05);
-  padding:15px 20px;border-radius:12px;
-  backdrop-filter:blur(10px);
-  font-size:13px;line-height:1.6;
-}
-.hints span{color:#00f0ff}
+body{background:#0a0a0a;color:white;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif}
+#wave{width:150px;height:150px;border-radius:50%;background:cyan}
 </style>
 </head>
 <body>
 
-<div class="title">METO</div>
 <div id="wave"></div>
-<div id="status">Hold SPACE to talk</div>
-<div id="log">Ready</div>
-
-<div class="hints">
-  <div><span>open</span> youtube</div>
-  <div><span>search</span> cats</div>
-  <div><span>search</span> toys on amazon</div>
-</div>
 
 <script>
-// ================= SPEECH =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
-recognition.lang = 'en-US';
 
-const wave = document.getElementById('wave');
-const status = document.getElementById('status');
-const log = document.getElementById('log');
+let sites = {};
 
-// ================= VOICE =================
-let voices = [];
-speechSynthesis.onvoiceschanged = () => voices = speechSynthesis.getVoices();
+fetch('sites.json')
+  .then(r => r.json())
+  .then(d => {
+    sites = d;
+    console.log("SITES LOADED:", sites);
+  })
+  .catch(err => console.error("JSON FAILED:", err));
 
-function speak(text){
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.85;
-  u.pitch = 0.8;
-  u.voice = voices.find(v=>v.lang.includes('en')) || voices[0];
+function speak(t){
+  let u=new SpeechSynthesisUtterance(t);
+  u.rate=0.9;u.pitch=0.8;
   speechSynthesis.speak(u);
 }
 
-// ================= DATABASE =================
-let sites = {};
-fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
-
-// ================= CORE =================
 function openSite(q){
-  q = q.toLowerCase();
+  q=q.toLowerCase();
 
-  for(const k in sites){
+  for(let k in sites){
     if(q.includes(k)){
-      speak('Opening ' + k);
-      setTimeout(()=>window.open(sites[k], '_blank'), 900);
+      speak("Opening "+k);
+      window.open(sites[k],"_blank");
       return;
     }
   }
 
-  speak('Searching ' + q);
-  setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`), 900);
+  speak("Searching "+q);
+  window.open("https://google.com/search?q="+q);
 }
 
 function searchOnSite(site, term){
-  site = site.toLowerCase();
-
-  if(site.includes('youtube')){
-    window.open(`https://youtube.com/results?search_query=${term}`);
-  }
-  else if(site.includes('amazon')){
-    window.open(`https://www.amazon.com/s?k=${term}`);
-  }
-  else if(site.includes('google')){
-    window.open(`https://www.google.com/search?q=${term}`);
-  }
-  else{
-    window.open(`https://www.google.com/search?q=${term}`);
-  }
+  if(site.includes("youtube"))
+    window.open("https://youtube.com/results?search_query="+term);
+  else if(site.includes("amazon"))
+    window.open("https://www.amazon.com/s?k="+term);
+  else
+    window.open("https://google.com/search?q="+term);
 }
 
-// ================= SMART PARSER =================
 function parse(text){
-  text = text.toLowerCase().trim();
-  log.textContent = 'Heard: ' + text;
+  text=text.toLowerCase();
 
-  // remove wake word
-  text = text.replace('hey meto','').trim();
+  if(text.includes("search")){
+    let clean=text.replace("search","").trim();
+    let m=clean.match(/(.+?) on (.+)/);
 
-  // 🔴 SEARCH DETECTION (more flexible)
-  if(text.includes('search')){
-    let clean = text.replace('search','').trim();
-
-    let match = clean.match(/(.+?) on (.+)/);
-
-    if(match){
-      let term = match[1];
-      let site = match[2];
-      speak('Searching ' + term);
-      setTimeout(()=>searchOnSite(site, term), 700);
-      return;
+    if(m){
+      searchOnSite(m[2], m[1]);
+    } else {
+      window.open("https://google.com/search?q="+clean);
     }
-
-    speak('Searching ' + clean);
-    setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(clean)}`), 700);
     return;
   }
 
-  // 🟢 OPEN DETECTION (flexible)
-  if(text.includes('open') || text.includes('go to') || text.includes('launch')){
-    let clean = text.replace(/open|go to|launch/g,'').trim();
+  if(text.includes("open")){
+    let clean=text.replace("open","").trim();
     openSite(clean);
     return;
   }
 
-  // 🧠 DEFAULT
-  speak('Searching ' + text);
-  setTimeout(()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(text)}`), 700);
+  window.open("https://google.com/search?q="+text);
 }
 
-// ================= EVENTS =================
-recognition.onresult = e => parse(e.results[0][0].transcript);
-
-recognition.onend = () => {
-  wave.classList.remove('active');
-  status.textContent = 'Hold SPACE to talk';
+recognition.onresult=e=>{
+  parse(e.results[0][0].transcript);
 };
 
-let holding=false;
-window.addEventListener('keydown',e=>{
-  if(e.code==='Space'&&!holding){
-    holding=true;
-    wave.classList.add('active');
-    status.textContent='Listening...';
-    recognition.start();
-  }
-});
-
-window.addEventListener('keyup',e=>{
-  if(e.code==='Space'){
-    holding=false;
-    status.textContent='Processing...';
-  }
+window.addEventListener("keydown",e=>{
+  if(e.code==="Space") recognition.start();
 });
 </script>
 
