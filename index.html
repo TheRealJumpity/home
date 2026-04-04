@@ -82,7 +82,7 @@ const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= VOICE FIX =================
+// ================= VOICE =================
 let voices = [];
 function loadVoices(){
   voices = speechSynthesis.getVoices();
@@ -91,18 +91,16 @@ loadVoices();
 speechSynthesis.onvoiceschanged = loadVoices;
 
 function getBestVoice(){
-  // prioritize deeper / natural voices
-  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('deep') || v.name.toLowerCase().includes('natural'))) 
-      || voices.find(v => v.lang.includes('en')) 
+  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('natural')))
+      || voices.find(v => v.lang.includes('en'))
       || voices[0];
 }
 
 function speak(text){
-  speechSynthesis.cancel(); // prevents robotic stacking
-
+  speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.85;   // slower = more natural
-  utter.pitch = 0.8;   // deeper voice
+  utter.rate = 0.85;
+  utter.pitch = 0.8;
   utter.volume = 1;
 
   const voice = getBestVoice();
@@ -127,7 +125,7 @@ function findMatch(q){
 function delayedOpen(url){
   setTimeout(()=>{
     window.open(url,'_blank');
-  }, 900); // delay added
+  }, 900);
 }
 
 function openSite(q){
@@ -136,7 +134,8 @@ function openSite(q){
     speak('Opening ' + q);
     delayedOpen(match);
   }else{
-    fallback(q);
+    speak('Searching ' + q);
+    delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(q)}`);
   }
 }
 
@@ -144,37 +143,46 @@ function searchSite(site,term){
   if(site.includes('youtube')){
     speak('Searching YouTube');
     delayedOpen(`https://youtube.com/results?search_query=${term}`);
-  }else{
-    fallback(term);
+  } else {
+    speak('Searching ' + term);
+    delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(term)}`);
   }
 }
 
-function fallback(q){
-  speak('Trying to open ' + q);
-  let clean=q.replace(/\s+/g,'');
-  delayedOpen(`https://${clean}.com`);
-}
-
+// ================= FIXED PARSER =================
 function parse(text){
-  text=text.toLowerCase().trim();
-  log.textContent='Heard: '+text;
+  text = text.toLowerCase().trim();
+  log.textContent = 'Heard: ' + text;
 
-  if(text.startsWith('hey meto')) text=text.replace('hey meto','').trim();
+  if(text.startsWith('hey meto')){
+    text = text.replace('hey meto','').trim();
+  }
 
-  let open=text.match(/(open|go to|launch)\s(.+)/);
-  let search=text.match(/search\s(.+)\s(on\s(.+))?/);
+  // 🔴 SEARCH ALWAYS PRIORITY
+  if(text.startsWith('search ')){
+    const clean = text.replace('search ', '');
 
-  if(open){openSite(open[2]);return}
-  if(search){
-    if(search[3]) searchSite(search[3],search[1]);
-    else{
-      speak('Searching ' + search[1]);
-      delayedOpen(`https://google.com/search?q=${search[1]}`);
+    const match = clean.match(/(.+?)\s+on\s+(.+)/);
+
+    if(match){
+      searchSite(match[2], match[1]);
+    } else {
+      speak('Searching ' + clean);
+      delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(clean)}`);
     }
     return;
   }
 
-  fallback(text);
+  // 🟢 OPEN
+  let open = text.match(/^(open|go to|launch)\s+(.+)/);
+  if(open){
+    openSite(open[2]);
+    return;
+  }
+
+  // 🧠 DEFAULT → SEARCH
+  speak('Searching ' + text);
+  delayedOpen(`https://www.google.com/search?q=${encodeURIComponent(text)}`);
 }
 
 // ================= EVENTS =================
