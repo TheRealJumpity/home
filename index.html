@@ -3,104 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meto AI Intro</title>
+<title>Meto AI</title>
 <style>
-body, html {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  font-family: 'Segoe UI', sans-serif;
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{
+  height:100vh;
+  background:linear-gradient(135deg,#0a0a0a,#111827);
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
 }
-
-/* SVG container */
-#intro {
-  width: 300px;
-  height: 150px;
-  position: relative;
+body::before{
+  content:"";
+  position:absolute;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(0,255,255,0.15),transparent 70%);
+  filter:blur(80px);
+  animation:float 6s infinite alternate ease-in-out;
 }
-
-/* Main Meto UI hidden initially */
-#mainUI {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.8s ease;
+@keyframes float{
+  from{transform:translateY(-40px)}
+  to{transform:translateY(40px)}
 }
-
-/* Fade out animation */
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+.title{
+  position:absolute;
+  top:40px;
+  font-size:32px;
+  letter-spacing:2px;
+}
+#wave{
+  width:180px;height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,#00f0ff,#0066ff);
+  box-shadow:0 0 40px rgba(0,255,255,.6);
+  transition:.2s;
+}
+#wave.active{
+  transform:scale(1.3);
+  box-shadow:0 0 80px rgba(0,255,255,1);
+}
+#status{
+  position:absolute;
+  bottom:80px;
+  font-size:18px;
+}
+#log{
+  position:absolute;
+  bottom:40px;
+  font-size:14px;
+  opacity:.7;
 }
 </style>
 </head>
 <body>
 
-<!-- Intro animation SVG -->
-<div id="intro">
-  <svg viewBox="0 0 300 150" width="300" height="150">
-    <!-- Smile path -->
-    <path id="smile" d="M60,90 Q150,140 240,90" stroke="#00f0ff" stroke-width="4" fill="transparent"/>
-    <!-- METO handwritten text (hidden initially) -->
-    <text id="metoText" x="50%" y="90" text-anchor="middle" fill="#00f0ff" font-size="48" font-family="Segoe Script, cursive" opacity="0">METO</text>
-  </svg>
-</div>
-
-<!-- MAIN METO UI -->
-<div id="mainUI">
-  <div class="title">METO</div>
-  <div id="wave-container">
-    <div class="outer-circle"></div>
-    <div class="outer-circle"></div>
-    <div class="outer-circle"></div>
-    <div id="wave"></div>
-  </div>
-  <div id="status">Hold SPACE to talk</div>
-  <div id="log">Ready</div>
-</div>
+<div class="title">METO</div>
+<div id="wave"></div>
+<div id="status">Hold SPACE to talk</div>
+<div id="log">Ready</div>
 
 <script>
-// Animate the smile into METO text
-const smile = document.getElementById('smile');
-const metoText = document.getElementById('metoText');
-const mainUI = document.getElementById('mainUI');
-
-// Get total length of the path for stroke animation
-const length = smile.getTotalLength();
-smile.style.strokeDasharray = length;
-smile.style.strokeDashoffset = length;
-
-// Animation: draw smile
-smile.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], {
-  duration: 1000,
-  easing: 'ease-in-out',
-  fill: 'forwards'
-}).onfinish = () => {
-  // Morph smile to METO text (fade out smile, fade in text)
-  smile.style.transition = 'opacity 0.5s';
-  smile.style.opacity = 0;
-
-  metoText.style.transition = 'opacity 0.5s';
-  metoText.style.opacity = 1;
-
-  // Keep text for 1.75s then fade out
-  setTimeout(() => {
-    metoText.style.animation = 'fadeOut 0.5s forwards';
-    // After fade out, show main UI
-    setTimeout(() => {
-      document.getElementById('intro').style.display = 'none';
-      mainUI.style.opacity = 1;
-      mainUI.style.pointerEvents = 'auto';
-    }, 500);
-  }, 1750);
-});
-
-// ================= METO UI SPEECH & LOGIC =================
+// ================= SPEECH =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.lang = 'en-US';
@@ -110,6 +76,7 @@ const status = document.getElementById('status');
 const log = document.getElementById('log');
 
 let selectedVoice = null;
+
 function loadVoice(){
   const voices = speechSynthesis.getVoices();
   selectedVoice = voices.find(v => v.lang.startsWith('en') && /female|Google UK English|Samantha/i.test(v.name)) || voices[0];
@@ -118,24 +85,22 @@ speechSynthesis.onvoiceschanged = loadVoice;
 
 function speak(text){
   if(!selectedVoice) loadVoice();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.voice = selectedVoice;
-  utterance.rate = 0.95;
-  utterance.pitch = 1.1;
-  utterance.volume = 1;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.voice = selectedVoice;
+  utt.rate = 0.95;
+  utt.pitch = 1.1;
   speechSynthesis.cancel();
-  speechSynthesis.speak(utterance);
-  status.textContent = "Speaking...";
-  utterance.onend = () => status.textContent = "Ready";
+  speechSynthesis.speak(utt);
 }
 
-// Load sites.json
+// ================= LOAD SITES =================
 let sites = {};
 fetch('sites.json')
   .then(r => r.json())
-  .then(d => sites = d);
+  .then(d => sites = d)
+  .catch(err => console.error(err));
 
-// Core functions
+// ================= CORE =================
 function openSite(q){
   for(let k in sites){
     if(q.includes(k)){
@@ -154,6 +119,7 @@ function searchOnSite(site, term){
   else window.open(`https://google.com/search?q=${term}`);
 }
 
+// ================= PARSER =================
 function parse(text){
   text = text.toLowerCase();
   log.textContent = "Heard: " + text;
@@ -161,6 +127,7 @@ function parse(text){
   if(text.includes("search")){
     let clean = text.replace("search","").trim();
     let m = clean.match(/(.+?) on (.+)/);
+
     if(m){
       speak("Searching " + m[1]);
       searchOnSite(m[2], m[1]);
@@ -181,6 +148,7 @@ function parse(text){
   window.open(`https://google.com/search?q=${text}`);
 }
 
+// ================= EVENTS =================
 recognition.onresult = e => parse(e.results[0][0].transcript);
 recognition.onend = () => {
   wave.classList.remove('active');
