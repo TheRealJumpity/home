@@ -1,15 +1,207 @@
+<!-- ========================= -->
+<!-- index.html (MAIN FILE) -->
+<!-- ========================= -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meto AI</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f0f0f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#wave {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00f0ff, transparent);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: 0.2s;
+}
+
+#wave.active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+#status {
+  position: absolute;
+  bottom: 40px;
+  font-size: 18px;
+  opacity: 0.7;
+}
+</style>
+</head>
 <body>
-    <div id="ui-container">
-        <p id="instruction">Say "Open" followed by a site name!</p>
-        <select id="site-list">
-            <option value="">-- View All 100 Sites --</option>
-        </select>
-    </div>
 
-    <h1>Hold [Space] to talk to Meto</h1>
-    <div id="wave" class="hidden"></div> <p id="status">Meto is waiting...</p>
+<div id="wave"></div>
+<div id="status">Hold SPACE to talk</div>
 
-    <script src="script.js"></script>
-    <script src="meto-logic.js"></script>
-    <script src="meto-ui.js"></script>
+<script>
+// =========================
+// LOAD DATABASE
+// =========================
+let sites = {};
+
+fetch('sites.json')
+  .then(res => res.json())
+  .then(data => sites = data);
+
+// =========================
+// SPEECH SETUP
+// =========================
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.continuous = false;
+recognition.interimResults = false;
+recognition.lang = 'en-US';
+
+// =========================
+// UI
+// =========================
+const wave = document.getElementById('wave');
+const status = document.getElementById('status');
+
+function startListening() {
+  wave.classList.add('active');
+  status.textContent = 'Listening...';
+  recognition.start();
+}
+
+function stopListening() {
+  wave.classList.remove('active');
+  status.textContent = 'Processing...';
+}
+
+// =========================
+// COMMAND PARSER
+// =========================
+function parseCommand(text) {
+  text = text.toLowerCase().trim();
+
+  // wake word (optional)
+  if (text.startsWith('hey meto')) {
+    text = text.replace('hey meto', '').trim();
+  }
+
+  const openMatch = text.match(/(open|go to|launch)\s(.+)/);
+  const searchMatch = text.match(/search\s(.+)\s(on\s(.+))?/);
+
+  if (openMatch) {
+    const query = openMatch[2];
+    openSite(query);
+  }
+
+  else if (searchMatch) {
+    const term = searchMatch[1];
+    const site = searchMatch[3];
+
+    if (site) {
+      searchOnSite(site, term);
+    } else {
+      window.open(`https://www.google.com/search?q=${term}`, '_blank');
+    }
+  }
+
+  else {
+    fallback(text);
+  }
+}
+
+// =========================
+// SMART MATCH
+// =========================
+function findBestMatch(query) {
+  query = query.toLowerCase();
+
+  for (const key in sites) {
+    if (key.includes(query) || query.includes(key)) {
+      return sites[key];
+    }
+  }
+
+  return null;
+}
+
+// =========================
+// ACTIONS
+// =========================
+function openSite(query) {
+  const match = findBestMatch(query);
+
+  if (match) {
+    window.open(match, '_blank');
+  } else {
+    fallback(query);
+  }
+}
+
+function searchOnSite(site, term) {
+  site = site.toLowerCase();
+
+  if (site.includes('youtube')) {
+    window.open(`https://www.youtube.com/results?search_query=${term}`, '_blank');
+  }
+
+  else if (site.includes('google')) {
+    window.open(`https://www.google.com/search?q=${term}`, '_blank');
+  }
+
+  else {
+    fallback(term);
+  }
+}
+
+function fallback(query) {
+  let clean = query.replace(/\s+/g, '');
+  window.open(`https://${clean}.com`, '_blank');
+}
+
+// =========================
+// SPEECH RESULT
+// =========================
+recognition.onresult = (event) => {
+  const text = event.results[0][0].transcript;
+  status.textContent = 'Heard: ' + text;
+
+  parseCommand(text);
+};
+
+recognition.onend = () => {
+  wave.classList.remove('active');
+  status.textContent = 'Hold SPACE to talk';
+};
+
+// =========================
+// SPACE KEY CONTROL
+// =========================
+let isHolding = false;
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !isHolding) {
+    isHolding = true;
+    startListening();
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    isHolding = false;
+    stopListening();
+  }
+});
+</script>
+
 </body>
+</html>
