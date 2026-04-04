@@ -2,17 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meto | Your AI Friend</title>
     <link rel="stylesheet" href="style.css">
-    <title>Meto AI | System Core</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="chat-wrapper">
+        <header>
+            <div class="status-dot"></div>
+            <h1>Meto</h1>
+        </header>
+        
+        <div id="chat-flow">
+            <div class="message meto-msg">Hey! I'm Meto. What's on your mind today?</div>
+        </div>
 
-    <div id="meto-core">
-        <h1 class="glow-text">METO</h1>
-        <div id="status-light"></div>
-        <h2 id="status-msg">System Booting...</h2>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Message Meto..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
