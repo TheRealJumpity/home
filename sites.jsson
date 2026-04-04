@@ -1,9 +1,5 @@
-const wave = document.getElementById('wave');
-const statusText = document.getElementById('status');
-
-// Meto's Database of 100 Websites
-const sites = {
-    // --- TOP SEARCH & UTILITIES ---
+{
+  // --- TOP SEARCH & UTILITIES ---
     "google": "https://www.google.com",
     "bing": "https://www.bing.com",
     "duckduckgo": "https://www.duckduckgo.com",
@@ -98,46 +94,4 @@ const sites = {
     "tripadvisor": "https://www.tripadvisor.com",
     "zillow": "https://www.zillow.com"
     // (You can keep adding to reach exactly 100!)
-};
-
-// 2. Setup Voice Recognition
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
-recognition.continuous = false;
-recognition.lang = 'en-US';
-
-// 3. Spacebar Logic
-window.addEventListener('keydown', (e) => {
-    if (e.code === "Space" && wave.classList.contains('hidden')) {
-        e.preventDefault(); 
-        wave.classList.remove('hidden');
-        statusText.innerText = "Meto is listening...";
-        recognition.start();
-    }
-});
-
-window.addEventListener('keyup', (e) => {
-    if (e.code === "Space") {
-        wave.classList.add('hidden');
-        recognition.stop();
-    }
-});
-
-// 4. Processing the Voice Command
-recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript.toLowerCase();
-    statusText.innerText = `You said: "${transcript}"`;
-
-    if (transcript.includes("open")) {
-        // Find the name after "open"
-        const siteName = transcript.replace("open", "").trim();
-
-        if (sites[siteName]) {
-            window.open(sites[siteName], "_blank");
-        } else {
-            // Fallback: Tries to fix common gaps in speech
-            const formattedName = siteName.replace(/\s+/g, '');
-            window.open(`https://www.${formattedName}.com`, "_blank");
-        }
-    }
-};
+}
