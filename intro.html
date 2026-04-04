@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meto Intro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="morph.js"></script>
+<style>
+body{margin:0; background:#000; display:flex; justify-content:center; align-items:center; height:100vh;}
+#introContainer{width:400px; height:200px;}
+svg{width:100%; height:100%;}
+#mainUI{opacity:0; pointer-events:none; transition: opacity 0.8s;}
+</style>
+</head>
+<body>
+
+<div id="introContainer">
+  <svg viewBox="0 0 300 150">
+    <!-- Smile path -->
+    <path id="smilePath" d="M60,90 Q150,140 240,90" stroke="#00f0ff" stroke-width="4" fill="transparent"/>
+    <!-- METO path (handwritten letters as path) -->
+    <path id="metoPath" d="M50,120 ... Z" fill="#00f0ff"/> <!-- REPLACE ... Z with your METO SVG path -->
+  </svg>
+</div>
+
+<div id="mainUI">
+  <!-- Your normal assistant UI -->
+  <div class="title">METO</div>
+  <div id="wave"></div>
+  <div id="status">Hold SPACE to talk</div>
+  <div id="log">Ready</div>
+</div>
+
+</body>
+</html>
