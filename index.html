@@ -17,7 +17,6 @@ body{
   justify-content:center;
   overflow:hidden;
 }
-
 body::before{
   content:"";
   position:absolute;
@@ -83,15 +82,31 @@ const wave = document.getElementById('wave');
 const status = document.getElementById('status');
 const log = document.getElementById('log');
 
-// ================= SPEECH (VOICE OUTPUT) =================
-function speak(text){
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.9;
-  utter.pitch = 1.1;
+// ================= VOICE FIX =================
+let voices = [];
+function loadVoices(){
+  voices = speechSynthesis.getVoices();
+}
+loadVoices();
+speechSynthesis.onvoiceschanged = loadVoices;
 
-  const voices = speechSynthesis.getVoices();
-  const softVoice = voices.find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('female'));
-  if(softVoice) utter.voice = softVoice;
+function getBestVoice(){
+  // prioritize deeper / natural voices
+  return voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('deep') || v.name.toLowerCase().includes('natural'))) 
+      || voices.find(v => v.lang.includes('en')) 
+      || voices[0];
+}
+
+function speak(text){
+  speechSynthesis.cancel(); // prevents robotic stacking
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.85;   // slower = more natural
+  utter.pitch = 0.8;   // deeper voice
+  utter.volume = 1;
+
+  const voice = getBestVoice();
+  if(voice) utter.voice = voice;
 
   speechSynthesis.speak(utter);
 }
@@ -109,11 +124,17 @@ function findMatch(q){
   return null;
 }
 
+function delayedOpen(url){
+  setTimeout(()=>{
+    window.open(url,'_blank');
+  }, 900); // delay added
+}
+
 function openSite(q){
   const match = findMatch(q);
   if(match){
     speak('Opening ' + q);
-    window.open(match,'_blank');
+    delayedOpen(match);
   }else{
     fallback(q);
   }
@@ -122,7 +143,7 @@ function openSite(q){
 function searchSite(site,term){
   if(site.includes('youtube')){
     speak('Searching YouTube');
-    window.open(`https://youtube.com/results?search_query=${term}`,'_blank');
+    delayedOpen(`https://youtube.com/results?search_query=${term}`);
   }else{
     fallback(term);
   }
@@ -131,7 +152,7 @@ function searchSite(site,term){
 function fallback(q){
   speak('Trying to open ' + q);
   let clean=q.replace(/\s+/g,'');
-  window.open(`https://${clean}.com`,'_blank');
+  delayedOpen(`https://${clean}.com`);
 }
 
 function parse(text){
@@ -146,8 +167,10 @@ function parse(text){
   if(open){openSite(open[2]);return}
   if(search){
     if(search[3]) searchSite(search[3],search[1]);
-    else window.open(`https://google.com/search?q=${search[1]}`,'_blank');
-    speak('Searching ' + search[1]);
+    else{
+      speak('Searching ' + search[1]);
+      delayedOpen(`https://google.com/search?q=${search[1]}`);
+    }
     return;
   }
 
