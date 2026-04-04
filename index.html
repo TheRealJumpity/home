@@ -1,204 +1,184 @@
-<!-- ========================= -->
-<!-- index.html (MAIN FILE) -->
-<!-- ========================= -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meto AI</title>
+
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f0f0f;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{
+  height:100vh;
+  background:linear-gradient(135deg,#0a0a0a,#111827);
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
 }
 
-#wave {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #00f0ff, transparent);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: 0.2s;
+body::before{
+  content:"";
+  position:absolute;
+  width:600px;height:600px;
+  background:radial-gradient(circle,rgba(0,255,255,0.15),transparent 70%);
+  filter:blur(80px);
+  animation:float 6s infinite alternate ease-in-out;
 }
+@keyframes float{from{transform:translateY(-40px)}to{transform:translateY(40px)}}
 
-#wave.active {
-  opacity: 1;
-  transform: scale(1.2);
-}
+.title{position:absolute;top:40px;font-size:32px;letter-spacing:2px;opacity:.9}
 
-#status {
-  position: absolute;
-  bottom: 40px;
-  font-size: 18px;
-  opacity: 0.7;
+#wave{
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,#00f0ff,#0066ff);
+  box-shadow:0 0 40px rgba(0,255,255,.6);
+  transition:.2s ease;position:relative;
 }
+#wave.active{transform:scale(1.25);box-shadow:0 0 80px rgba(0,255,255,1)}
+#wave::after{
+  content:"";position:absolute;width:180px;height:180px;border-radius:50%;
+  border:2px solid rgba(0,255,255,.4);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.8);opacity:0}}
+
+#status{position:absolute;bottom:80px;font-size:18px;opacity:.8}
+#log{position:absolute;bottom:40px;font-size:14px;opacity:.6;text-align:center}
+
+.hints{
+  position:absolute;right:30px;top:100px;
+  background:rgba(255,255,255,0.05);
+  padding:15px 20px;border-radius:12px;
+  backdrop-filter:blur(10px);
+  font-size:13px;line-height:1.6;
+}
+.hints span{color:#00f0ff}
 </style>
 </head>
 <body>
 
+<div class="title">METO</div>
 <div id="wave"></div>
 <div id="status">Hold SPACE to talk</div>
+<div id="log">Ready</div>
+
+<div class="hints">
+  <div><span>open</span> youtube</div>
+  <div><span>search</span> cats</div>
+  <div><span>search</span> memes on youtube</div>
+</div>
 
 <script>
-// =========================
-// LOAD DATABASE
-// =========================
-let sites = {};
-
-fetch('sites.json')
-  .then(res => res.json())
-  .then(data => sites = data);
-
-// =========================
-// SPEECH SETUP
-// =========================
+// ================= VOICE SETUP =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
-
 recognition.continuous = false;
 recognition.interimResults = false;
 recognition.lang = 'en-US';
 
-// =========================
-// UI
-// =========================
+// ================= UI =================
 const wave = document.getElementById('wave');
 const status = document.getElementById('status');
+const log = document.getElementById('log');
 
-function startListening() {
-  wave.classList.add('active');
-  status.textContent = 'Listening...';
-  recognition.start();
+// ================= SPEECH (VOICE OUTPUT) =================
+function speak(text){
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.9;
+  utter.pitch = 1.1;
+
+  const voices = speechSynthesis.getVoices();
+  const softVoice = voices.find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('female'));
+  if(softVoice) utter.voice = softVoice;
+
+  speechSynthesis.speak(utter);
 }
 
-function stopListening() {
-  wave.classList.remove('active');
-  status.textContent = 'Processing...';
-}
+// ================= DATABASE =================
+let sites = {};
+fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
 
-// =========================
-// COMMAND PARSER
-// =========================
-function parseCommand(text) {
-  text = text.toLowerCase().trim();
-
-  // wake word (optional)
-  if (text.startsWith('hey meto')) {
-    text = text.replace('hey meto', '').trim();
+// ================= LOGIC =================
+function findMatch(q){
+  q=q.toLowerCase();
+  for(const k in sites){
+    if(k.includes(q)||q.includes(k)) return sites[k];
   }
-
-  const openMatch = text.match(/(open|go to|launch)\s(.+)/);
-  const searchMatch = text.match(/search\s(.+)\s(on\s(.+))?/);
-
-  if (openMatch) {
-    const query = openMatch[2];
-    openSite(query);
-  }
-
-  else if (searchMatch) {
-    const term = searchMatch[1];
-    const site = searchMatch[3];
-
-    if (site) {
-      searchOnSite(site, term);
-    } else {
-      window.open(`https://www.google.com/search?q=${term}`, '_blank');
-    }
-  }
-
-  else {
-    fallback(text);
-  }
-}
-
-// =========================
-// SMART MATCH
-// =========================
-function findBestMatch(query) {
-  query = query.toLowerCase();
-
-  for (const key in sites) {
-    if (key.includes(query) || query.includes(key)) {
-      return sites[key];
-    }
-  }
-
   return null;
 }
 
-// =========================
-// ACTIONS
-// =========================
-function openSite(query) {
-  const match = findBestMatch(query);
-
-  if (match) {
-    window.open(match, '_blank');
-  } else {
-    fallback(query);
+function openSite(q){
+  const match = findMatch(q);
+  if(match){
+    speak('Opening ' + q);
+    window.open(match,'_blank');
+  }else{
+    fallback(q);
   }
 }
 
-function searchOnSite(site, term) {
-  site = site.toLowerCase();
-
-  if (site.includes('youtube')) {
-    window.open(`https://www.youtube.com/results?search_query=${term}`, '_blank');
-  }
-
-  else if (site.includes('google')) {
-    window.open(`https://www.google.com/search?q=${term}`, '_blank');
-  }
-
-  else {
+function searchSite(site,term){
+  if(site.includes('youtube')){
+    speak('Searching YouTube');
+    window.open(`https://youtube.com/results?search_query=${term}`,'_blank');
+  }else{
     fallback(term);
   }
 }
 
-function fallback(query) {
-  let clean = query.replace(/\s+/g, '');
-  window.open(`https://${clean}.com`, '_blank');
+function fallback(q){
+  speak('Trying to open ' + q);
+  let clean=q.replace(/\s+/g,'');
+  window.open(`https://${clean}.com`,'_blank');
 }
 
-// =========================
-// SPEECH RESULT
-// =========================
-recognition.onresult = (event) => {
-  const text = event.results[0][0].transcript;
-  status.textContent = 'Heard: ' + text;
+function parse(text){
+  text=text.toLowerCase().trim();
+  log.textContent='Heard: '+text;
 
-  parseCommand(text);
-};
+  if(text.startsWith('hey meto')) text=text.replace('hey meto','').trim();
 
-recognition.onend = () => {
+  let open=text.match(/(open|go to|launch)\s(.+)/);
+  let search=text.match(/search\s(.+)\s(on\s(.+))?/);
+
+  if(open){openSite(open[2]);return}
+  if(search){
+    if(search[3]) searchSite(search[3],search[1]);
+    else window.open(`https://google.com/search?q=${search[1]}`,'_blank');
+    speak('Searching ' + search[1]);
+    return;
+  }
+
+  fallback(text);
+}
+
+// ================= EVENTS =================
+recognition.onresult=e=>{
+  const text=e.results[0][0].transcript;
+  parse(text);
+}
+
+recognition.onend=()=>{
   wave.classList.remove('active');
-  status.textContent = 'Hold SPACE to talk';
-};
+  status.textContent='Hold SPACE to talk';
+}
 
-// =========================
-// SPACE KEY CONTROL
-// =========================
-let isHolding = false;
-
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && !isHolding) {
-    isHolding = true;
-    startListening();
+let holding=false;
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&!holding){
+    holding=true;
+    wave.classList.add('active');
+    status.textContent='Listening...';
+    recognition.start();
   }
 });
 
-window.addEventListener('keyup', (e) => {
-  if (e.code === 'Space') {
-    isHolding = false;
-    stopListening();
+window.addEventListener('keyup',e=>{
+  if(e.code==='Space'){
+    holding=false;
+    status.textContent='Processing...';
   }
 });
 </script>
