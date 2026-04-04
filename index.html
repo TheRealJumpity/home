@@ -3,120 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meto AI</title>
-
+<title>Meto AI Intro</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
-
-body{
-  height:100vh;
-  background:linear-gradient(135deg,#0a0a0a,#111827);
-  color:white;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  position:relative;
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.title{
-  position:absolute;
-  top:40px;
-  font-size:32px;
-  letter-spacing:2px;
+/* SVG container */
+#intro {
+  width: 300px;
+  height: 150px;
+  position: relative;
 }
 
-#wave-container{
-  position:relative;
-  width:180px;
-  height:180px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+/* Main Meto UI hidden initially */
+#mainUI {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
 }
 
-#wave{
-  width:100%; height:100%;
-  border-radius:50%;
-  background:radial-gradient(circle,#00f0ff,#0066ff);
-  box-shadow:0 0 40px rgba(0,255,255,.6);
-  transition:.2s;
-  position:relative;
-  z-index:3;
-}
-
-#wave.active{
-  transform:scale(1.3);
-  box-shadow:0 0 80px rgba(0,255,255,1);
-}
-
-/* Floating outer circles */
-.outer-circle{
-  position:absolute;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(0,255,255,0.2), transparent 70%);
-  filter:blur(40px);
-  animation:floatFade 6s ease-in-out infinite alternate, spin 20s linear infinite;
-  z-index:1;
-}
-
-.outer-circle:nth-child(1){
-  width:220px; height:220px;
-  animation-duration:6s, 18s;
-}
-
-.outer-circle:nth-child(2){
-  width:260px; height:260px;
-  animation-duration:7s, 22s;
-}
-
-.outer-circle:nth-child(3){
-  width:300px; height:300px;
-  animation-duration:8s, 26s;
-}
-
-@keyframes floatFade{
-  0%{transform:translateY(-20px); opacity:0.3;}
-  50%{transform:translateY(20px); opacity:0.6;}
-  100%{transform:translateY(-20px); opacity:0.3;}
-}
-
-@keyframes spin{
-  0%{transform:rotate(0deg);}
-  100%{transform:rotate(360deg);}
-}
-
-#status{
-  position:absolute;
-  bottom:80px;
-  font-size:18px;
-}
-
-#log{
-  position:absolute;
-  bottom:40px;
-  font-size:14px;
-  opacity:.7;
+/* Fade out animation */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 </style>
 </head>
 <body>
 
-<div class="title">METO</div>
-
-<div id="wave-container">
-  <div class="outer-circle"></div>
-  <div class="outer-circle"></div>
-  <div class="outer-circle"></div>
-  <div id="wave"></div>
+<!-- Intro animation SVG -->
+<div id="intro">
+  <svg viewBox="0 0 300 150" width="300" height="150">
+    <!-- Smile path -->
+    <path id="smile" d="M60,90 Q150,140 240,90" stroke="#00f0ff" stroke-width="4" fill="transparent"/>
+    <!-- METO handwritten text (hidden initially) -->
+    <text id="metoText" x="50%" y="90" text-anchor="middle" fill="#00f0ff" font-size="48" font-family="Segoe Script, cursive" opacity="0">METO</text>
+  </svg>
 </div>
 
-<div id="status">Hold SPACE to talk</div>
-<div id="log">Ready</div>
+<!-- MAIN METO UI -->
+<div id="mainUI">
+  <div class="title">METO</div>
+  <div id="wave-container">
+    <div class="outer-circle"></div>
+    <div class="outer-circle"></div>
+    <div class="outer-circle"></div>
+    <div id="wave"></div>
+  </div>
+  <div id="status">Hold SPACE to talk</div>
+  <div id="log">Ready</div>
+</div>
 
 <script>
-// ================= SPEECH =================
+// Animate the smile into METO text
+const smile = document.getElementById('smile');
+const metoText = document.getElementById('metoText');
+const mainUI = document.getElementById('mainUI');
+
+// Get total length of the path for stroke animation
+const length = smile.getTotalLength();
+smile.style.strokeDasharray = length;
+smile.style.strokeDashoffset = length;
+
+// Animation: draw smile
+smile.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], {
+  duration: 1000,
+  easing: 'ease-in-out',
+  fill: 'forwards'
+}).onfinish = () => {
+  // Morph smile to METO text (fade out smile, fade in text)
+  smile.style.transition = 'opacity 0.5s';
+  smile.style.opacity = 0;
+
+  metoText.style.transition = 'opacity 0.5s';
+  metoText.style.opacity = 1;
+
+  // Keep text for 1.75s then fade out
+  setTimeout(() => {
+    metoText.style.animation = 'fadeOut 0.5s forwards';
+    // After fade out, show main UI
+    setTimeout(() => {
+      document.getElementById('intro').style.display = 'none';
+      mainUI.style.opacity = 1;
+      mainUI.style.pointerEvents = 'auto';
+    }, 500);
+  }, 1750);
+});
+
+// ================= METO UI SPEECH & LOGIC =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.lang = 'en-US';
@@ -126,20 +110,18 @@ const status = document.getElementById('status');
 const log = document.getElementById('log');
 
 let selectedVoice = null;
-
 function loadVoice(){
   const voices = speechSynthesis.getVoices();
   selectedVoice = voices.find(v => v.lang.startsWith('en') && /female|Google UK English|Samantha/i.test(v.name)) || voices[0];
 }
-
 speechSynthesis.onvoiceschanged = loadVoice;
 
 function speak(text){
   if(!selectedVoice) loadVoice();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.voice = selectedVoice;
-  utterance.rate = 0.95;   
-  utterance.pitch = 1.1;   
+  utterance.rate = 0.95;
+  utterance.pitch = 1.1;
   utterance.volume = 1;
   speechSynthesis.cancel();
   speechSynthesis.speak(utterance);
@@ -147,36 +129,31 @@ function speak(text){
   utterance.onend = () => status.textContent = "Ready";
 }
 
-// ================= LOAD SITES =================
+// Load sites.json
 let sites = {};
 fetch('sites.json')
   .then(r => r.json())
-  .then(d => { sites = d; console.log("LOADED:", sites); })
-  .catch(err => console.error("JSON ERROR:", err));
+  .then(d => sites = d);
 
-// ================= CORE =================
+// Core functions
 function openSite(q){
   for(let k in sites){
     if(q.includes(k)){
       speak("Opening " + k);
-      setTimeout(()=>window.open(sites[k],"_blank"), 800);
+      setTimeout(()=>window.open(sites[k], "_blank"), 800);
       return;
     }
   }
   speak("Searching " + q);
-  setTimeout(()=>window.open(`https://google.com/search?q=${q}`),800);
+  setTimeout(()=>window.open(`https://google.com/search?q=${q}`), 800);
 }
 
 function searchOnSite(site, term){
-  if(site.includes("youtube"))
-    window.open(`https://youtube.com/results?search_query=${term}`);
-  else if(site.includes("amazon"))
-    window.open(`https://www.amazon.com/s?k=${term}`);
-  else
-    window.open(`https://google.com/search?q=${term}`);
+  if(site.includes("youtube")) window.open(`https://youtube.com/results?search_query=${term}`);
+  else if(site.includes("amazon")) window.open(`https://www.amazon.com/s?k=${term}`);
+  else window.open(`https://google.com/search?q=${term}`);
 }
 
-// ================= PARSER =================
 function parse(text){
   text = text.toLowerCase();
   log.textContent = "Heard: " + text;
@@ -204,9 +181,7 @@ function parse(text){
   window.open(`https://google.com/search?q=${text}`);
 }
 
-// ================= EVENTS =================
 recognition.onresult = e => parse(e.results[0][0].transcript);
-
 recognition.onend = () => {
   wave.classList.remove('active');
   status.textContent = "Hold SPACE to talk";
@@ -226,6 +201,5 @@ window.addEventListener("keyup", e=>{
   }
 });
 </script>
-
 </body>
 </html>
