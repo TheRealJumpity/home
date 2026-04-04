@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Meto AI</title>
-    <link rel="stylesheet" href="style.css">
-</head>
 <body>
+    <div id="ui-container">
+        <p id="instruction">Say "Open" followed by a site name!</p>
+        <select id="site-list">
+            <option value="">-- View All 100 Sites --</option>
+        </select>
+    </div>
+
     <h1>Hold [Space] to talk to Meto</h1>
-    <div id="wave" class="hidden"></div>
-    <p id="status">Meto is waiting...</p>
+    <div id="wave" class="hidden"></div> <p id="status">Meto is waiting...</p>
 
     <script src="script.js"></script>
     <script src="meto-logic.js"></script>
     <script src="meto-ui.js"></script>
-    <script src="style.css"></script>
 </body>
-</html>
-
