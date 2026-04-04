@@ -41,17 +41,58 @@ body::before{
   letter-spacing:2px;
 }
 
+#wave-container{
+  position:relative;
+  width:180px;
+  height:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
 #wave{
-  width:180px;height:180px;
+  width:100%; height:100%;
   border-radius:50%;
   background:radial-gradient(circle,#00f0ff,#0066ff);
   box-shadow:0 0 40px rgba(0,255,255,.6);
   transition:.2s;
+  position:relative;
+  z-index:2;
 }
 
 #wave.active{
   transform:scale(1.3);
   box-shadow:0 0 80px rgba(0,255,255,1);
+}
+
+/* Outer glowing circles */
+.outer-circle{
+  position:absolute;
+  width:220px;
+  height:220px;
+  border:2px solid rgba(0,255,255,0.3);
+  border-radius:50%;
+  animation:spin 8s linear infinite;
+  z-index:1;
+}
+
+.outer-circle:nth-child(2){
+  width:260px;
+  height:260px;
+  border-color: rgba(0,255,255,0.2);
+  animation-duration:12s;
+}
+
+.outer-circle:nth-child(3){
+  width:300px;
+  height:300px;
+  border-color: rgba(0,255,255,0.15);
+  animation-duration:16s;
+}
+
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
 }
 
 #status{
@@ -71,7 +112,14 @@ body::before{
 <body>
 
 <div class="title">METO</div>
-<div id="wave"></div>
+
+<div id="wave-container">
+  <div class="outer-circle"></div>
+  <div class="outer-circle"></div>
+  <div class="outer-circle"></div>
+  <div id="wave"></div>
+</div>
+
 <div id="status">Hold SPACE to talk</div>
 <div id="log">Ready</div>
 
@@ -90,7 +138,6 @@ let selectedVoice = null;
 // Load the most natural English voice available
 function loadVoice(){
   const voices = speechSynthesis.getVoices();
-  // Prefer female or expressive voices
   selectedVoice = voices.find(v => v.lang.startsWith('en') && /female|Google UK English|Samantha/i.test(v.name)) || voices[0];
 }
 
@@ -101,8 +148,8 @@ function speak(text){
   if(!selectedVoice) loadVoice();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.voice = selectedVoice;
-  utterance.rate = 0.95;   // Slightly slower for clarity
-  utterance.pitch = 1.1;   // Slightly higher for friendliness
+  utterance.rate = 0.95;   
+  utterance.pitch = 1.1;   
   utterance.volume = 1;
   speechSynthesis.cancel();
   speechSynthesis.speak(utterance);
@@ -114,10 +161,7 @@ function speak(text){
 let sites = {};
 fetch('sites.json')
   .then(r => r.json())
-  .then(d => {
-    sites = d;
-    console.log("LOADED:", sites);
-  })
+  .then(d => { sites = d; console.log("LOADED:", sites); })
   .catch(err => console.error("JSON ERROR:", err));
 
 // ================= CORE =================
@@ -150,7 +194,6 @@ function parse(text){
   if(text.includes("search")){
     let clean = text.replace("search","").trim();
     let m = clean.match(/(.+?) on (.+)/);
-
     if(m){
       speak("Searching " + m[1]);
       searchOnSite(m[2], m[1]);
@@ -172,9 +215,7 @@ function parse(text){
 }
 
 // ================= EVENTS =================
-recognition.onresult = e => {
-  parse(e.results[0][0].transcript);
-};
+recognition.onresult = e => parse(e.results[0][0].transcript);
 
 recognition.onend = () => {
   wave.classList.remove('active');
