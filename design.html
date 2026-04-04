@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meto UI Enhanced</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a, #111827);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Glow background */
+body::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0,255,255,0.15), transparent 70%);
+  filter: blur(80px);
+  animation: float 6s infinite alternate ease-in-out;
+}
+
+@keyframes float {
+  from { transform: translateY(-40px); }
+  to { transform: translateY(40px); }
+}
+
+/* Title */
+.title {
+  position: absolute;
+  top: 40px;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  opacity: 0.9;
+}
+
+/* Wave circle */
+#wave {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00f0ff, #0066ff);
+  box-shadow: 0 0 40px rgba(0,255,255,0.6);
+  transition: 0.2s ease;
+}
+
+#wave.active {
+  transform: scale(1.25);
+  box-shadow: 0 0 80px rgba(0,255,255,1);
+}
+
+/* Pulse animation */
+#wave::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,255,255,0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Status text */
+#status {
+  position: absolute;
+  bottom: 80px;
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+/* Command log */
+#log {
+  position: absolute;
+  bottom: 20px;
+  font-size: 14px;
+  opacity: 0.5;
+  max-width: 80%;
+  text-align: center;
+}
+
+/* Hint box */
+.hints {
+  position: absolute;
+  right: 30px;
+  top: 100px;
+  background: rgba(255,255,255,0.05);
+  padding: 15px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.hints span {
+  color: #00f0ff;
+}
+
+</style>
+</head>
+<body>
+
+<div class="title">METO</div>
+
+<div id="wave"></div>
+
+<div id="status">Hold SPACE to talk</div>
+<div id="log">Say something like: "open youtube"</div>
+
+<div class="hints">
+  <div><span>open</span> youtube</div>
+  <div><span>search</span> cats</div>
+  <div><span>search</span> memes on youtube</div>
+</div>
+
+<script>
+// Basic animation demo (no voice here, just visual test)
+const wave = document.getElementById('wave');
+
+let active = false;
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !active) {
+    active = true;
+    wave.classList.add('active');
+    document.getElementById('status').textContent = 'Listening...';
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    active = false;
+    wave.classList.remove('active');
+    document.getElementById('status').textContent = 'Hold SPACE to talk';
+  }
+});
+</script>
+
+</body>
+</html>
