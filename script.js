@@ -1,26 +1,37 @@
-const btn = document.getElementById('mic-btn');
-const text = document.getElementById('response-text');
+// --- METO KNOWLEDGE DATABASE ---
+// Add thousands of lines here to make Meto smarter!
+const knowledgeBase = [
+    "Initializing Meto System...",
+    "Scanning galaxy for data...",
+    "Connection stable. I am ready to assist.",
+    "Did you know? Light travels at 299,792 kilometers per second.",
+    "System Update: All core modules are performing at 100% efficiency.",
+    "Analyzing your request... Meto is online and thinking."
+    // KEEP ADDING MORE SENTENCES HERE!
+];
 
-// This makes Meto speak
-function speak(message) {
-    const speech = new SpeechSynthesisUtterance(message);
+const statusText = document.getElementById('status-msg');
+
+function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.rate = 0.9; // Makes Meto sound more serious
+    speech.pitch = 0.8; 
     window.speechSynthesis.speak(speech);
 }
 
-// This makes Meto listen
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
-
-btn.addEventListener('click', () => {
-    recognition.start(); // Asks for mic permission and starts listening
-    text.innerText = "Meto is listening...";
-});
-
-recognition.onresult = (event) => {
-    const command = event.results[0][0].transcript;
-    text.innerText = "You said: " + command;
+// This makes Meto start talking automatically when the page loads
+window.onload = () => {
+    let index = 0;
     
-    // Meto's reply
-    const reply = "I heard you say " + command + ". I am Meto, your new assistant!";
-    speak(reply);
+    // Meto will cycle through the database and speak
+    setInterval(() => {
+        if (index < knowledgeBase.length) {
+            const line = knowledgeBase[index];
+            statusText.innerText = line;
+            speak(line);
+            index++;
+        } else {
+            index = 0; // Restart the loop
+        }
+    }, 5000); // Meto speaks a new line every 5 seconds
 };
