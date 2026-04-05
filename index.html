@@ -4,10 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meto AI</title>
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
-
 body{
   height:100vh;
   background:linear-gradient(135deg,#0a0a0a,#111827);
@@ -18,7 +16,6 @@ body{
   justify-content:center;
   overflow:hidden;
 }
-
 body::before{
   content:"";
   position:absolute;
@@ -27,18 +24,8 @@ body::before{
   filter:blur(80px);
   animation:float 6s infinite alternate ease-in-out;
 }
-
-@keyframes float{
-  from{transform:translateY(-40px)}
-  to{transform:translateY(40px)}
-}
-
-.title{
-  position:absolute;
-  top:40px;
-  font-size:32px;
-}
-
+@keyframes float{from{transform:translateY(-40px)}to{transform:translateY(40px)}}
+.title{position:absolute;top:40px;font-size:32px;}
 /* WAVE */
 #wave{
   width:180px;height:180px;
@@ -47,16 +34,13 @@ body::before{
   box-shadow:0 0 40px rgba(0,255,255,.6);
   transition:.2s;
 }
-
 #wave.active{
   transform:scale(1.3);
   box-shadow:0 0 80px rgba(0,255,255,1);
 }
-
 /* TEXT */
 #status{position:absolute;bottom:80px;}
 #log{position:absolute;bottom:40px;font-size:14px;opacity:.7;}
-
 /* FACE */
 #face{
   position:absolute;
@@ -70,91 +54,54 @@ body::before{
   animation:breath 3s infinite ease-in-out;
   transition:.2s;
 }
-
-@keyframes breath{
-  0%{transform:translateY(-50%) scale(1)}
-  50%{transform:translateY(-50%) scale(1.05)}
-  100%{transform:translateY(-50%) scale(1)}
-}
-
+@keyframes breath{0%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.05)}100%{transform:translateY(-50%) scale(1)}}
 /* EYES */
-#eyes{
-  display:flex;
-  gap:18px;
-}
-
+#eyes{display:flex;gap:18px;}
 .cyl{
-  width:18px;
-  height:70px;
+  width:18px;height:70px;
   border-radius:50px;
   background:linear-gradient(to bottom,#00f0ff,#0066ff);
   box-shadow:0 0 20px rgba(0,255,255,0.6);
   transition:transform 0.08s linear, box-shadow .2s, height .2s;
 }
-
-/* MOUTH (default closed) */
+/* MOUTH */
 #mouth{
-  width:40px;
-  height:8px;
+  width:40px;height:8px;
   border-radius:20px;
   background:#00f0ff;
   box-shadow:0 0 10px rgba(0,255,255,0.7);
   transition:all 0.2s ease;
 }
-
 /* STATES */
-.listening .cyl{
-  box-shadow:0 0 35px rgba(0,255,255,1);
-}
-
-.processing #mouth{
-  transform:scale(1.2);
-}
-
+.listening .cyl{box-shadow:0 0 35px rgba(0,255,255,1);}
+.processing #mouth{transform:scale(1.2);}
 /* SPEAKING */
 .speaking #mouth{
-  width:40px;
-  height:40px;
+  width:40px;height:40px;
   border-radius:50%;
   border:3px solid #00f0ff;
   background:transparent;
   box-shadow:0 0 15px rgba(0,255,255,0.9);
   animation:talk 0.25s infinite alternate;
 }
+@keyframes talk{from{transform:scaleY(1);}to{transform:scaleY(1.2);}}
 
-@keyframes talk{
-  from{transform:scaleY(1);}
-  to{transform:scaleY(1.2);}
-}
+/* HOVER PET MODE */
+#face:hover .cyl{height:10px;box-shadow:0 0 25px rgba(0,255,255,1);}
+#face:hover #mouth{height:20px;border-radius:0 0 40px 40px;background:#00f0ff;border:none;box-shadow:0 0 20px rgba(0,255,255,1);}
+#face:hover{transform:translateY(-50%) scale(1.08);}
 
-/* 😺 HOVER (PET MODE) */
-#face:hover .cyl{
-  height:10px; /* closed eyes */
-  box-shadow:0 0 25px rgba(0,255,255,1);
-}
-
-#face:hover #mouth{
-  height:20px;
-  border-radius:0 0 40px 40px; /* smile */
-  background:#00f0ff;
-  border:none;
-  box-shadow:0 0 20px rgba(0,255,255,1);
-}
-
-/* Slight happy bounce */
-#face:hover{
-  transform:translateY(-50%) scale(1.08);
-}
+/* EXPRESSIONS */
+.happy #mouth{height:20px;border-radius:0 0 40px 40px;background:#00f0ff;box-shadow:0 0 20px rgba(0,255,255,1);}
+.surprised #mouth{width:30px;height:30px;border-radius:50%;border:3px solid #00f0ff;background:transparent;box-shadow:0 0 20px rgba(0,255,255,0.9);}
+.thinking #mouth{width:40px;height:10px;border-radius:10px;background:#00f0ff;box-shadow:0 0 10px rgba(0,255,255,0.7);}
 </style>
 </head>
-
 <body>
-
 <div class="title">METO</div>
 <div id="wave"></div>
 <div id="status">Hold SPACE to talk</div>
 <div id="log">Ready</div>
-
 <div id="face">
   <div id="eyes">
     <div class="cyl"></div>
@@ -168,153 +115,116 @@ body::before{
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.lang = 'en-US';
-
-const wave = document.getElementById('wave');
-const status = document.getElementById('status');
-const log = document.getElementById('log');
-const face = document.getElementById('face');
-
-let selectedVoice = null;
-
+const wave=document.getElementById('wave');
+const status=document.getElementById('status');
+const log=document.getElementById('log');
+const face=document.getElementById('face');
+const mouth=document.getElementById('mouth');
+let selectedVoice=null;
 function loadVoice(){
-  const voices = speechSynthesis.getVoices();
-  selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+  const voices=speechSynthesis.getVoices();
+  selectedVoice=voices.find(v=>v.lang.startsWith('en'))||voices[0];
 }
-speechSynthesis.onvoiceschanged = loadVoice;
-
+speechSynthesis.onvoiceschanged=loadVoice;
 function speak(text){
   if(!selectedVoice) loadVoice();
-
   face.classList.add("speaking");
-
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.voice = selectedVoice;
-  utt.rate = 0.95;
-  utt.pitch = 1.05;
-
-  utt.onend = () => face.classList.remove("speaking");
-
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.voice=selectedVoice;
+  utt.rate=0.95;
+  utt.pitch=1.05;
+  utt.onend=()=>{face.classList.remove("speaking"); face.classList.remove("happy","thinking","surprised");};
   speechSynthesis.cancel();
   speechSynthesis.speak(utt);
 }
 
-// ================= LOAD SITES =================
-let sites = {};
-fetch('sites.json')
-  .then(r => r.json())
-  .then(d => sites = d);
-
-// ================= CORE =================
+// ================= SITES =================
+let sites={};
+fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
 function openSite(q){
-  for(let k in sites){
-    if(q.includes(k)){
-      speak("Opening " + k);
-      setTimeout(()=>window.open(sites[k], "_blank"), 800);
-      return;
-    }
-  }
-  speak("Searching " + q);
-  setTimeout(()=>window.open(`https://google.com/search?q=${q}`), 800);
+  for(let k in sites){if(q.includes(k)){speak("Opening "+k);setTimeout(()=>window.open(sites[k], "_blank"),800);return;}}
+  speak("Searching "+q); setTimeout(()=>window.open(`https://google.com/search?q=${q}`),800);
 }
-
-function searchOnSite(site, term){
+function searchOnSite(site,term){
   if(site.includes("youtube")) window.open(`https://youtube.com/results?search_query=${term}`);
   else if(site.includes("amazon")) window.open(`https://www.amazon.com/s?k=${term}`);
   else window.open(`https://google.com/search?q=${term}`);
 }
 
-// ================= PARSER =================
+// ================= PARSER / VOICE COMMANDS =================
 function parse(text){
+  text=text.toLowerCase();
+  log.textContent="Heard: "+text;
   face.classList.remove("listening");
   face.classList.add("processing");
+  setTimeout(()=>face.classList.remove("processing"),500);
 
-  text = text.toLowerCase();
-  log.textContent = "Heard: " + text;
-
-  setTimeout(()=>face.classList.remove("processing"), 500);
-
-  if(text.includes("search")){
-    let clean = text.replace("search","").trim();
-    let m = clean.match(/(.+?) on (.+)/);
-
-    if(m){
-      speak("Searching " + m[1]);
-      searchOnSite(m[2], m[1]);
-    } else {
-      speak("Searching " + clean);
-      window.open(`https://google.com/search?q=${clean}`);
-    }
+  // Custom interactive commands
+  if(text.includes("hello")){
+    face.classList.add("happy");
+    speak("Hello! Nice to meet you!");
+    return;
+  }
+  if(text.includes("how are you")){
+    face.classList.add("thinking");
+    speak("I am doing great! How about you?");
+    return;
+  }
+  if(text.includes("joke")){
+    face.classList.add("happy");
+    speak("Why did the computer show up at work late? Because it had a hard drive!");
+    return;
+  }
+  if(text.includes("surprise me")){
+    face.classList.add("surprised");
+    speak("Surprise!");
     return;
   }
 
+  // Default actions
+  if(text.includes("search")){
+    let clean=text.replace("search","").trim();
+    let m=clean.match(/(.+?) on (.+)/);
+    if(m){speak("Searching "+m[1]); searchOnSite(m[2],m[1]);}
+    else {speak("Searching "+clean); window.open(`https://google.com/search?q=${clean}`);}
+    return;
+  }
   if(text.includes("open")){
-    let clean = text.replace("open","").trim();
+    let clean=text.replace("open","").trim();
     openSite(clean);
     return;
   }
 
-  speak("Searching " + text);
+  speak("Searching "+text);
   window.open(`https://google.com/search?q=${text}`);
 }
 
-// ================= TRACKING (TRULY GLITCH-FREE) =================
-const cylinders = document.querySelectorAll(".cyl");
-
-// Initialize smooth positions
-cylinders.forEach(cyl => {
-  cyl._currentX = 0;
-  cyl._currentY = 0;
-});
-
-document.addEventListener("mousemove", (e) => {
-  cylinders.forEach(cyl => {
-    const rect = cyl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    const dx = e.clientX - cx;
-    const dy = e.clientY - cy;
-    const distance = Math.sqrt(dx*dx + dy*dy);
-
-    if(distance < 1) return; // dead zone
-
-    const angle = Math.atan2(dy, dx);
-
-    const targetX = Math.cos(angle) * 3; // max movement
-    const targetY = Math.sin(angle) * 3;
-
-    // smoother easing
-    cyl._currentX += (targetX - cyl._currentX) * 0.1;
-    cyl._currentY += (targetY - cyl._currentY) * 0.1;
-
-    cyl.style.transform = `translate(${cyl._currentX}px, ${cyl._currentY}px)`;
+// ================= TRACKING =================
+const cylinders=document.querySelectorAll(".cyl");
+cylinders.forEach(cyl=>{cyl._currentX=0;cyl._currentY=0;});
+document.addEventListener("mousemove",(e)=>{
+  cylinders.forEach(cyl=>{
+    const rect=cyl.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    const dx=e.clientX-cx;
+    const dy=e.clientY-cy;
+    const distance=Math.sqrt(dx*dx+dy*dy);
+    if(distance<1) return;
+    const angle=Math.atan2(dy,dx);
+    const targetX=Math.cos(angle)*3;
+    const targetY=Math.sin(angle)*3;
+    cyl._currentX+=(targetX-cyl._currentX)*0.08;
+    cyl._currentY+=(targetY-cyl._currentY)*0.08;
+    cyl.style.transform=`translate(${cyl._currentX}px, ${cyl._currentY}px)`;
   });
 });
 
 // ================= EVENTS =================
-recognition.onresult = e => parse(e.results[0][0].transcript);
-
-recognition.onend = () => {
-  wave.classList.remove('active');
-  face.classList.remove("listening");
-  status.textContent = "Hold SPACE to talk";
-};
-
-window.addEventListener("keydown", e=>{
-  if(e.code==="Space"){
-    wave.classList.add('active');
-    face.classList.add("listening");
-    status.textContent = "Listening...";
-    recognition.start();
-  }
-});
-
-window.addEventListener("keyup", e=>{
-  if(e.code==="Space"){
-    status.textContent = "Processing...";
-  }
-});
+recognition.onresult=e=>parse(e.results[0][0].transcript);
+recognition.onend=()=>{wave.classList.remove('active'); face.classList.remove("listening"); status.textContent="Hold SPACE to talk";};
+window.addEventListener("keydown",e=>{if(e.code==="Space"){wave.classList.add('active');face.classList.add("listening");status.textContent="Listening...";recognition.start();}});
+window.addEventListener("keyup",e=>{if(e.code==="Space"){status.textContent="Processing...";}});
 </script>
-
 </body>
 </html>
