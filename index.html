@@ -26,75 +26,28 @@ body::before{
 }
 @keyframes float{from{transform:translateY(-40px)}to{transform:translateY(40px)}}
 .title{position:absolute;top:40px;font-size:32px;}
-/* WAVE */
-#wave{
-  width:180px;height:180px;
-  border-radius:50%;
-  background:radial-gradient(circle,#00f0ff,#0066ff);
-  box-shadow:0 0 40px rgba(0,255,255,.6);
-  transition:.2s;
-}
-#wave.active{
-  transform:scale(1.3);
-  box-shadow:0 0 80px rgba(0,255,255,1);
-}
-/* TEXT */
+#wave{width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#00f0ff,#0066ff);box-shadow:0 0 40px rgba(0,255,255,.6);transition:.2s;}
+#wave.active{transform:scale(1.3);box-shadow:0 0 80px rgba(0,255,255,1);}
 #status{position:absolute;bottom:80px;}
 #log{position:absolute;bottom:40px;font-size:14px;opacity:.7;}
-/* FACE */
-#face{
-  position:absolute;
-  right:60px;
-  top:50%;
-  transform:translateY(-50%);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
-  animation:breath 3s infinite ease-in-out;
-  transition:.2s;
-}
+#face{position:absolute;right:60px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;animation:breath 3s infinite ease-in-out;transition:.2s;}
 @keyframes breath{0%{transform:translateY(-50%) scale(1)}50%{transform:translateY(-50%) scale(1.05)}100%{transform:translateY(-50%) scale(1)}}
-/* EYES */
 #eyes{display:flex;gap:18px;}
-.cyl{
-  width:18px;height:70px;
-  border-radius:50px;
-  background:linear-gradient(to bottom,#00f0ff,#0066ff);
-  box-shadow:0 0 20px rgba(0,255,255,0.6);
-  transition:transform 0.08s linear, box-shadow .2s, height .2s;
-}
-/* MOUTH */
-#mouth{
-  width:40px;height:8px;
-  border-radius:20px;
-  background:#00f0ff;
-  box-shadow:0 0 10px rgba(0,255,255,0.7);
-  transition:all 0.2s ease;
-}
-/* STATES */
+.cyl{width:18px;height:70px;border-radius:50px;background:linear-gradient(to bottom,#00f0ff,#0066ff);box-shadow:0 0 20px rgba(0,255,255,0.6);transition:transform 0.08s linear, box-shadow .2s, height .2s;}
+#mouth{width:40px;height:8px;border-radius:20px;background:#00f0ff;box-shadow:0 0 10px rgba(0,255,255,0.7);transition:all 0.2s ease;}
 .listening .cyl{box-shadow:0 0 35px rgba(0,255,255,1);}
 .processing #mouth{transform:scale(1.2);}
-/* SPEAKING */
-.speaking #mouth{
-  width:40px;height:40px;
-  border-radius:50%;
-  border:3px solid #00f0ff;
-  background:transparent;
-  box-shadow:0 0 15px rgba(0,255,255,0.9);
-  animation:talk 0.25s infinite alternate;
-}
+.speaking #mouth{width:40px;height:40px;border-radius:50%;border:3px solid #00f0ff;background:transparent;box-shadow:0 0 15px rgba(0,255,255,0.9);animation:talk 0.25s infinite alternate;}
 @keyframes talk{from{transform:scaleY(1);}to{transform:scaleY(1.2);}}
-
-/* HOVER PET MODE */
 #face:hover .cyl{height:10px;box-shadow:0 0 25px rgba(0,255,255,1);}
 #face:hover #mouth{height:20px;border-radius:0 0 40px 40px;background:#00f0ff;border:none;box-shadow:0 0 20px rgba(0,255,255,1);}
 #face:hover{transform:translateY(-50%) scale(1.08);}
-
 /* EXPRESSIONS */
 .happy #mouth{height:20px;border-radius:0 0 40px 40px;background:#00f0ff;box-shadow:0 0 20px rgba(0,255,255,1);}
 .surprised #mouth{width:30px;height:30px;border-radius:50%;border:3px solid #00f0ff;background:transparent;box-shadow:0 0 20px rgba(0,255,255,0.9);}
 .thinking #mouth{width:40px;height:10px;border-radius:10px;background:#00f0ff;box-shadow:0 0 10px rgba(0,255,255,0.7);}
+/* IDLE ANIMATION FEEDBACK */
+@keyframes idleHead{0%{transform:translateY(-50%) rotate(0deg)}25%{transform:translateY(-50%) rotate(1deg)}50%{transform:translateY(-50%) rotate(0deg)}75%{transform:translateY(-50%) rotate(-1deg)}100%{transform:translateY(-50%) rotate(0deg);}}
 </style>
 </head>
 <body>
@@ -111,7 +64,6 @@ body::before{
 </div>
 
 <script>
-// ================= SPEECH =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.lang = 'en-US';
@@ -121,85 +73,18 @@ const log=document.getElementById('log');
 const face=document.getElementById('face');
 const mouth=document.getElementById('mouth');
 let selectedVoice=null;
-function loadVoice(){
-  const voices=speechSynthesis.getVoices();
-  selectedVoice=voices.find(v=>v.lang.startsWith('en'))||voices[0];
-}
+function loadVoice(){const voices=speechSynthesis.getVoices(); selectedVoice=voices.find(v=>v.lang.startsWith('en'))||voices[0];}
 speechSynthesis.onvoiceschanged=loadVoice;
 function speak(text){
   if(!selectedVoice) loadVoice();
   face.classList.add("speaking");
   const utt=new SpeechSynthesisUtterance(text);
-  utt.voice=selectedVoice;
-  utt.rate=0.95;
-  utt.pitch=1.05;
+  utt.voice=selectedVoice; utt.rate=0.95; utt.pitch=1.05;
   utt.onend=()=>{face.classList.remove("speaking"); face.classList.remove("happy","thinking","surprised");};
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utt);
+  speechSynthesis.cancel(); speechSynthesis.speak(utt);
 }
 
-// ================= SITES =================
-let sites={};
-fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
-function openSite(q){
-  for(let k in sites){if(q.includes(k)){speak("Opening "+k);setTimeout(()=>window.open(sites[k], "_blank"),800);return;}}
-  speak("Searching "+q); setTimeout(()=>window.open(`https://google.com/search?q=${q}`),800);
-}
-function searchOnSite(site,term){
-  if(site.includes("youtube")) window.open(`https://youtube.com/results?search_query=${term}`);
-  else if(site.includes("amazon")) window.open(`https://www.amazon.com/s?k=${term}`);
-  else window.open(`https://google.com/search?q=${term}`);
-}
-
-// ================= PARSER / VOICE COMMANDS =================
-function parse(text){
-  text=text.toLowerCase();
-  log.textContent="Heard: "+text;
-  face.classList.remove("listening");
-  face.classList.add("processing");
-  setTimeout(()=>face.classList.remove("processing"),500);
-
-  // Custom interactive commands
-  if(text.includes("hello")){
-    face.classList.add("happy");
-    speak("Hello! Nice to meet you!");
-    return;
-  }
-  if(text.includes("how are you")){
-    face.classList.add("thinking");
-    speak("I am doing great! How about you?");
-    return;
-  }
-  if(text.includes("joke")){
-    face.classList.add("happy");
-    speak("Why did the computer show up at work late? Because it had a hard drive!");
-    return;
-  }
-  if(text.includes("surprise me")){
-    face.classList.add("surprised");
-    speak("Surprise!");
-    return;
-  }
-
-  // Default actions
-  if(text.includes("search")){
-    let clean=text.replace("search","").trim();
-    let m=clean.match(/(.+?) on (.+)/);
-    if(m){speak("Searching "+m[1]); searchOnSite(m[2],m[1]);}
-    else {speak("Searching "+clean); window.open(`https://google.com/search?q=${clean}`);}
-    return;
-  }
-  if(text.includes("open")){
-    let clean=text.replace("open","").trim();
-    openSite(clean);
-    return;
-  }
-
-  speak("Searching "+text);
-  window.open(`https://google.com/search?q=${text}`);
-}
-
-// ================= TRACKING =================
+// ================= TRACKING with lag =================
 const cylinders=document.querySelectorAll(".cyl");
 cylinders.forEach(cyl=>{cyl._currentX=0;cyl._currentY=0;});
 document.addEventListener("mousemove",(e)=>{
@@ -220,11 +105,53 @@ document.addEventListener("mousemove",(e)=>{
   });
 });
 
+// ================= CORE / VOICE COMMANDS =================
+let sites={};
+fetch('sites.json').then(r=>r.json()).then(d=>sites=d);
+
+function openSite(q){for(let k in sites){if(q.includes(k)){speak("Opening "+k);setTimeout(()=>window.open(sites[k], "_blank"),800);return;}}
+speak("Searching "+q);setTimeout(()=>window.open(`https://google.com/search?q=${q}`),800);}
+
+function searchOnSite(site,term){if(site.includes("youtube")) window.open(`https://youtube.com/results?search_query=${term}`);
+else if(site.includes("amazon")) window.open(`https://www.amazon.com/s?k=${term}`);
+else window.open(`https://google.com/search?q=${term}`);}
+
+function parse(text){
+  text=text.toLowerCase();
+  log.textContent="Heard: "+text;
+  face.classList.remove("listening");
+  face.classList.add("processing");
+  setTimeout(()=>face.classList.remove("processing"),500);
+
+  // interactive commands
+  if(text.includes("hello")){face.classList.add("happy"); speak("Hello! Nice to meet you!"); return;}
+  if(text.includes("how are you")){face.classList.add("thinking"); speak("I am doing great! How about you?"); return;}
+  if(text.includes("joke")){face.classList.add("happy"); speak("Why did the computer show up at work late? Because it had a hard drive!"); return;}
+  if(text.includes("surprise me")){face.classList.add("surprised"); speak("Surprise!"); return;}
+
+  if(text.includes("search")){let clean=text.replace("search","").trim(); let m=clean.match(/(.+?) on (.+)/); if(m){speak("Searching "+m[1]); searchOnSite(m[2],m[1]);} else {speak("Searching "+clean); window.open(`https://google.com/search?q=${clean}`);} return;}
+  if(text.includes("open")){let clean=text.replace("open","").trim(); openSite(clean); return;}
+
+  speak("Searching "+text); window.open(`https://google.com/search?q=${text}`);
+}
+
 // ================= EVENTS =================
 recognition.onresult=e=>parse(e.results[0][0].transcript);
 recognition.onend=()=>{wave.classList.remove('active'); face.classList.remove("listening"); status.textContent="Hold SPACE to talk";};
 window.addEventListener("keydown",e=>{if(e.code==="Space"){wave.classList.add('active');face.classList.add("listening");status.textContent="Listening...";recognition.start();}});
 window.addEventListener("keyup",e=>{if(e.code==="Space"){status.textContent="Processing...";}});
+
+// ================= RANDOM IDLE CHATTER =================
+const idlePhrases=["Hello?","I'm still here...","Do you want to play?","Just waiting..."];
+let idleTimer;
+function resetIdleTimer(){clearTimeout(idleTimer); idleTimer=setTimeout(()=>{const phrase=idlePhrases[Math.floor(Math.random()*idlePhrases.length)]; face.classList.add("thinking"); speak(phrase); startIdleTimer();},10000);}
+function startIdleTimer(){idleTimer=setTimeout(()=>{const phrase=idlePhrases[Math.floor(Math.random()*idlePhrases.length)]; face.classList.add("thinking"); speak(phrase); startIdleTimer();},10000);}
+document.addEventListener("mousemove",resetIdleTimer);
+document.addEventListener("keydown",resetIdleTimer);
+startIdleTimer();
+
+// ================= IDLE HEAD TILT =================
+setInterval(()=>{if(!face.classList.contains("speaking")){face.style.animation="idleHead 6s infinite ease-in-out";}},1000);
 </script>
 </body>
 </html>
