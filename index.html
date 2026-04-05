@@ -64,6 +64,7 @@ body::before{
 </div>
 
 <script>
+// ================= SPEECH =================
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = new SpeechRecognition();
 recognition.lang = 'en-US';
@@ -140,15 +141,6 @@ recognition.onresult=e=>parse(e.results[0][0].transcript);
 recognition.onend=()=>{wave.classList.remove('active'); face.classList.remove("listening"); status.textContent="Hold SPACE to talk";};
 window.addEventListener("keydown",e=>{if(e.code==="Space"){wave.classList.add('active');face.classList.add("listening");status.textContent="Listening...";recognition.start();}});
 window.addEventListener("keyup",e=>{if(e.code==="Space"){status.textContent="Processing...";}});
-
-// ================= RANDOM IDLE CHATTER =================
-const idlePhrases=["Hello?","I'm still here...","Do you want to play?","Just waiting..."];
-let idleTimer;
-function resetIdleTimer(){clearTimeout(idleTimer); idleTimer=setTimeout(()=>{const phrase=idlePhrases[Math.floor(Math.random()*idlePhrases.length)]; face.classList.add("thinking"); speak(phrase); startIdleTimer();},10000);}
-function startIdleTimer(){idleTimer=setTimeout(()=>{const phrase=idlePhrases[Math.floor(Math.random()*idlePhrases.length)]; face.classList.add("thinking"); speak(phrase); startIdleTimer();},10000);}
-document.addEventListener("mousemove",resetIdleTimer);
-document.addEventListener("keydown",resetIdleTimer);
-startIdleTimer();
 
 // ================= IDLE HEAD TILT =================
 setInterval(()=>{if(!face.classList.contains("speaking")){face.style.animation="idleHead 6s infinite ease-in-out";}},1000);
